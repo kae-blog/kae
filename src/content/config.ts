@@ -8,8 +8,9 @@ const blogCollection = defineCollection({
     title: z.string(),
     description: z.string(),
     publishDate: z.date(),
-    category: z.string(),
-    previewImage: z.string(), // 首頁預覽圖的路徑
+    category: z.string(), // 這是你文章的「分類」
+    previewImage: z.string(), // 這是首頁 1:1 預覽圖的路徑
+    tags: z.array(z.string()).optional(), // 新增：tags 欄位是選用的 (optional)
   }),
 });
 
