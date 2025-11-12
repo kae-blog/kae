@@ -1,0 +1,54 @@
+---
+// src/pages/blog/[...slug].astro
+// 這是你的「文章內頁」模板
+// 它會自動抓取 src/content/blog/ 裡 .md 檔案的內容
+
+import { getCollection, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+// 這個函數告訴 Astro 要為 "blog" 裡的每一篇文章都產生一個頁面
+export async function getStaticPaths() {
+  const allPosts = await getCollection('blog');
+  return allPosts.map(post => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+// 取得當前頁面的文章內容
+type Props = {
+  post: CollectionEntry<'blog'>;
+}
+const { post } = Astro.props;
+const { Content } = await post.render(); // .md 檔案的 HTML 內容
+---
+<!-- 1. 套用「網站外殼」 -->
+<BaseLayout>
+    
+    <!-- 2. 放入 kae_blog_template.html 的 "page-post-1" 佈局 -->
+    <div class="max-w-3xl mx-auto">
+        <article class="bg-[var(--bg-card)] rounded-xl shadow-lg p-8 md:p-12">
+            <!-- 文章標頭 (從 Front Matter 讀取) -->
+            <header class="mb-8">
+                <div class="mb-4">
+                    <span class="text-sm font-medium text-white bg-[var(--accent-color)] py-1 px-3 rounded-full">
+                        {post.data.category}
+                    </span>
+                </div>
+                <h1 class="text-4xl md:text-5xl font-bold text-[var(--text-primary)] leading-tight mb-4">
+                    {post.data.title}
+                </h1>
+                <span class="text-base text-gray-500">
+                    {new Date(post.data.publishDate).toLocaleDateString('zh-TW')}・由 かえ (KAE) 撰寫
+                </span>
+            </header>
+
+            <!-- 3. 插入 Markdown 轉譯後的 HTML 內容 -->
+            <div class="prose max-w-none">
+                <Content />
+            </div>
+
+        </article>
+    </div>
+
+</BaseLayout>
