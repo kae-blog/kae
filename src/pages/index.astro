@@ -3,165 +3,101 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Sidebar from '../components/Sidebar.astro';
 import { getCollection } from 'astro:content';
 
-// 取得所有文章
+// 取得全部文章
 const allPosts = await getCollection('blog');
-allPosts.sort(
-  (a, b) =>
-    new Date(b.data.publishDate).getTime() -
-    new Date(a.data.publishDate).getTime()
-);
 
-// 最新文章 (取前 6 篇)
-const latestPosts = allPosts.slice(0, 6);
+// 精選文章：category 陣列中包含 '精選文章'
+const featuredPosts = allPosts
+  .filter(post => Array.isArray(post.data.category) && post.data.category.includes('精選文章'))
+  .sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime())
+  .slice(0, 6);
 
-// 精選文章 (tag 或 category 包含 '精選文章')
-const featuredPosts = allPosts.filter(
-  (post) =>
-    post.data.category === '精選文章' ||
-    post.data.tags?.includes('精選')
-).slice(0, 6);
+// 最新文章：排除精選文章
+const latestPosts = allPosts
+  .filter(post => !Array.isArray(post.data.category) || !post.data.category.includes('精選文章'))
+  .sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime())
+  .slice(0, 6);
 ---
 
 <BaseLayout>
   <div class="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-12">
-    <!-- 主內容區 -->
+    <!-- 主內容 -->
     <div class="md:col-span-2 space-y-12">
 
       <!-- 最新文章區 -->
       <section>
-        <h2 class="text-3xl font-bold text-[var(--text-primary)] mb-6 pb-3 border-b border-[var(--border-color)]">
-          最新文章
-        </h2>
+        <h2 class="text-3xl font-bold text-[var(--text-primary)] mb-6 pb-3 border-b border-[var(--border-color)]">最新文章</h2>
 
         <div class="space-y-4">
-          {latestPosts.map((post) => (
+          {latestPosts.map(post => (
             <article class="bg-[var(--bg-card)] rounded-xl shadow-md flex items-center p-4 hover:shadow-lg transition-all duration-300">
-              <!-- 左側縮圖：方形 1:1 -->
+              <!-- 左側縮圖：1:1 -->
               <div class="w-24 h-24 flex-shrink-0 overflow-hidden border border-[var(--border-color)] mr-4 rounded-lg">
-                <img
-                  src={post.data.heroImage || '/images/2511/0.png'}
-                  alt={post.data.title}
-                  class="w-full h-full object-cover"
-                />
+                <img src={post.data.heroImage || '/images/default.png'} alt={post.data.title} class="w-full h-full object-cover" />
               </div>
 
               <!-- 右側文字 -->
               <div class="flex-1">
                 <h3 class="text-base sm:text-lg font-bold text-[var(--text-primary)] mb-1 line-clamp-2">
-                  <a
-                    href={`/blog/${post.slug}`}
-                    class="hover:text-[var(--accent-color)] transition-colors"
-                  >
-                    {post.data.title}
-                  </a>
+                  <a href={`/blog/${post.slug}`} class="hover:text-[var(--accent-color)] transition-colors">{post.data.title}</a>
                 </h3>
-                <p class="text-sm text-[var(--text-secondary)] line-clamp-2 mb-2">
-                  {post.data.description}
-                </p>
+                <p class="text-sm text-[var(--text-secondary)] line-clamp-2 mb-2">{post.data.description}</p>
 
-                <!-- 日期 + tags + 閱讀 -->
+                <!-- 日期 + tags 前3個 + 閱讀按鈕 -->
                 <div class="flex flex-wrap items-center justify-between text-xs text-gray-500 gap-2">
                   <span>{new Date(post.data.publishDate).toLocaleDateString('zh-TW')}</span>
                   <div class="flex flex-wrap gap-1">
-                    {post.data.tags?.slice(0, 3).map((tag) => (
-                      <span
-                        class="px-2 py-0.5 rounded-md text-gray-700"
-                        style="background-color:#e7f0e2;"
-                      >
-                        {tag}
-                      </span>
+                    {post.data.tags?.slice(0,3).map(tag => (
+                      <span class="px-2 py-0.5 rounded-md text-gray-700" style="background-color:#e7f0e2;">{tag}</span>
                     ))}
                   </div>
-                  <a
-                    href={`/blog/${post.slug}`}
-                    class="text-[var(--accent-color)] hover:underline ml-auto"
-                  >
-                    閱讀 →
-                  </a>
+                  <a href={`/blog/${post.slug}`} class="text-[var(--accent-color)] hover:underline ml-auto">閱讀 →</a>
                 </div>
               </div>
             </article>
           ))}
         </div>
 
-        <!-- 查看所有文章 -->
         <div class="text-right mt-4">
-          <a
-            href="/category/最新文章"
-            class="text-[var(--accent-color)] hover:underline font-semibold"
-          >
-            查看所有文章 →
-          </a>
+          <a href="/category/最新文章" class="text-[var(--accent-color)] hover:underline font-semibold">查看所有文章 &rarr;</a>
         </div>
       </section>
 
       <!-- 精選文章區 -->
       <section>
-        <h2 class="text-3xl font-bold text-[var(--text-primary)] mb-6 pb-3 border-b border-[var(--border-color)]">
-          精選文章
-        </h2>
+        <h2 class="text-3xl font-bold text-[var(--text-primary)] mb-6 pb-3 border-b border-[var(--border-color)]">精選文章</h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {featuredPosts.map((post) => (
-            <article class="bg-[var(--bg-card)] rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300">
-              <!-- 精選文章大圖：16:9 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {featuredPosts.map(post => (
+            <article class="bg-[var(--bg-card)] rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden">
+              <!-- 上方橫圖 16:9 -->
               <div class="w-full aspect-video overflow-hidden">
-                <img
-                  src={post.data.previewImage || '/images/2511/0.png'}
-                  alt={post.data.title}
-                  class="w-full h-full object-cover"
-                />
+                <img src={post.data.heroImage || '/images/default.png'} alt={post.data.title} class="w-full h-full object-cover" />
               </div>
-
-              <!-- 文字內容 -->
-              <div class="p-4 md:p-6">
+              <div class="p-4">
                 <h3 class="text-lg font-bold text-[var(--text-primary)] mb-2 line-clamp-2">
-                  <a
-                    href={`/blog/${post.slug}`}
-                    class="hover:text-[var(--accent-color)] transition-colors"
-                  >
-                    {post.data.title}
-                  </a>
+                  <a href={`/blog/${post.slug}`} class="hover:text-[var(--accent-color)] transition-colors">{post.data.title}</a>
                 </h3>
-                <p class="text-[var(--text-secondary)] text-sm leading-relaxed mb-2 line-clamp-2">
-                  {post.data.description}
-                </p>
-
-                <!-- 日期 + tags + 閱讀 -->
+                <p class="text-sm text-[var(--text-secondary)] line-clamp-3 mb-2">{post.data.description}</p>
                 <div class="flex flex-wrap items-center justify-between text-xs text-gray-500 gap-2">
                   <span>{new Date(post.data.publishDate).toLocaleDateString('zh-TW')}</span>
                   <div class="flex flex-wrap gap-1">
-                    {post.data.tags?.slice(0, 3).map((tag) => (
-                      <span
-                        class="px-2 py-0.5 rounded-md text-gray-700"
-                        style="background-color:#e7f0e2;"
-                      >
-                        {tag}
-                      </span>
+                    {post.data.tags?.slice(0,3).map(tag => (
+                      <span class="px-2 py-0.5 rounded-md text-gray-700" style="background-color:#e7f0e2;">{tag}</span>
                     ))}
                   </div>
-                  <a
-                    href={`/blog/${post.slug}`}
-                    class="text-[var(--accent-color)] hover:underline ml-auto"
-                  >
-                    閱讀 →
-                  </a>
+                  <a href={`/blog/${post.slug}`} class="text-[var(--accent-color)] hover:underline ml-auto">閱讀 →</a>
                 </div>
               </div>
             </article>
           ))}
         </div>
 
-        <!-- 查看所有精選文章 -->
         <div class="text-right mt-4">
-          <a
-            href="/category/精選文章"
-            class="text-[var(--accent-color)] hover:underline font-semibold"
-          >
-            查看更多精選文章 →
-          </a>
+          <a href="/category/精選文章" class="text-[var(--accent-color)] hover:underline font-semibold">查看更多精選文章 &rarr;</a>
         </div>
       </section>
+
     </div>
 
     <!-- 側邊欄 -->
