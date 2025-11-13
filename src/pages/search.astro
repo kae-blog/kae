@@ -1,18 +1,29 @@
 ---
-// src/pages/search.astro (套用排版修正)
+// src/pages/search.astro (這是修正後的完整版本)
+
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 
-const query = Astro.url.searchParams.get('q')?.toLowerCase() || null;
+// --- 修正 1: 分開處理「顯示用」和「搜尋用」的關鍵字 ---
+// 顯示用：保留原始大小寫，用於填入 input value
+const displayQuery = Astro.url.searchParams.get('q') || null; 
+
+// 搜尋用：全部轉小寫，用於比對
+const searchQuery = displayQuery?.toLowerCase() || null;
+
 let filteredPosts = [];
 
-if (query) {
+// --- 修正 2: 使用「searchQuery」來過濾 ---
+if (searchQuery) {
   const allPosts = await getCollection('blog');
   filteredPosts = allPosts.filter(post => {
     const title = post.data.title.toLowerCase();
     const description = post.data.description.toLowerCase();
-    const body = post.body.toLowerCase();
-    return title.includes(query) || description.includes(query) || body.includes(query);
+    
+    // --- 修正 3: 移除 post.body 搜尋 ---
+    // post.body 在 getCollection() 中是 undefined，會導致錯誤
+    // 我們只搜尋標題和描述，這是最快且最安全的方法
+    return title.includes(searchQuery) || description.includes(searchQuery);
   });
 }
 ---
@@ -25,8 +36,7 @@ if (query) {
             <input 
                 type="text" 
                 name="q" 
-                value={query || ''} 
-                placeholder="搜尋文章..." 
+                value={displayQuery || ''}  placeholder="搜尋文章..." 
                 class="w-full px-3 py-2 rounded-md border border-[var(--border-color)] text-sm text-[var(--text-primary)] bg-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
             >
             <button type="submit" class="px-4 py-2 bg-[var(--accent-color)] text-white text-sm rounded-md hover:bg-[var(--accent-hover)] transition">
@@ -34,10 +44,11 @@ if (query) {
             </button>
         </form>
 
-        {query ? (
+        {/* --- 修正 5: 顯示時，也使用 displayQuery --- */}
+        {searchQuery ? (
             <>
                 <p class="text-lg text-[var(--text-secondary)] mb-6">
-                    找到 {filteredPosts.length} 篇關於「<span class="font-bold text-[var(--text-primary)]">{query}</span>」的文章：
+                    找到 {filteredPosts.length} 篇關於「<span class="font-bold text-[var(--text-primary)]">{displayQuery}</span>」的文章：
                 </p>
 
                 {filteredPosts.length > 0 ? (
@@ -65,13 +76,13 @@ if (query) {
                                 
                                 <div class="w-1/3 max-w-[120px] flex-shrink-0">
                                     <img src={post.data.previewImage} alt="文章預覽圖" class="w-full h-full object-cover">
-                                V</div>
+                                </div>
                             </article>
                         ))}
                     </div>
                 ) : (
                     <p class="text-center text-gray-500 text-lg py-10">
-                        找不到任何符合「<span class="font-bold text-[var(--text-primary)]">{query}</span>」的文章 😅
+                        找不到任何符合「<span classF="font-bold text-[var(--text-primary)]">{displayQuery}</span>」的文章 😅
                     </p>
                 )}
             </>
