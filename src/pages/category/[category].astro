@@ -1,0 +1,49 @@
+---
+// src/pages/category/[category].astro
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const { category } = Astro.params;
+const allPosts = await getCollection('blog');
+const posts = allPosts.filter(p => p.data.category === category);
+
+const formatDate = (date) => {
+  const d = new Date(date);
+  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+};
+---
+
+<BaseLayout>
+  <div class="max-w-3xl mx-auto">
+    <h1 class="text-3xl font-bold text-[var(--text-primary)] mb-8 pb-3 border-b border-[var(--border-color)]">
+      {category} 文章一覽
+    </h1>
+
+    {posts.length > 0 ? (
+      <div class="space-y-6">
+        {posts.map(post => (
+          <article class="bg-[var(--bg-card)] rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 p-5">
+            <h3 class="text-xl font-semibold mb-2">
+              <a href={`/blog/${post.slug}`} class="hover:text-[var(--accent-color)] transition-colors">
+                {post.data.title}
+              </a>
+            </h3>
+            <p class="text-sm text-[var(--text-secondary)] mb-3 line-clamp-3">
+              {post.data.description}
+            </p>
+            <div class="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+              <span>{formatDate(post.data.publishDate)}</span>
+              {post.data.tags?.slice(0, 3).map(tag => (
+                <span class="px-2 py-0.5 rounded-md text-gray-700" style="background-color:#e7f0e2;">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </article>
+        ))}
+      </div>
+    ) : (
+      <p class="text-gray-500 text-center py-10">目前沒有此分類的文章。</p>
+    )}
+  </div>
+</BaseLayout>
