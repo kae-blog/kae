@@ -1,140 +1,144 @@
 ---
-// src/pages/index.astro
-import BaseLayout from '../layouts/BaseLayout.astro';
-import Sidebar from '../components/Sidebar.astro';
 import { getCollection } from 'astro:content';
 
-// ------------------------------------
-// 取得所有文章
-// ------------------------------------
 const allPosts = await getCollection('blog');
 
-// 按發佈日期排序（最新在前）
-allPosts.sort(
-  (a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime()
-);
+// 最新文章區（依發佈日期排序，最多 5 篇）
+const latestPosts = allPosts
+  .sort((a, b) => new Date(b.data.publishDate) - new Date(a.data.publishDate))
+  .slice(0, 5);
 
-// ------------------------------------
-// 精選文章（category 或 tags 包含 '精選文章'）
-// ------------------------------------
-const featuredPosts = allPosts.filter(post => {
-  const categories = Array.isArray(post.data.category) ? post.data.category : [];
-  const tags = Array.isArray(post.data.tags) ? post.data.tags : [];
-  return categories.includes('精選文章') || tags.includes('精選文章');
-}).slice(0, 6); // 只取最新6篇
+// 精選文章區（category 包含 "精選文章"）
+const featuredPosts = allPosts.filter(post => post.data.category?.includes('精選文章')).slice(0, 6);
 ---
 
-<BaseLayout>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-12">
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KAE的雜記 - 日本留學與生活</title>
+  <link rel="stylesheet" href="/_astro/global.css" />
+</head>
+<body class="bg-[var(--bg-main)]">
 
-    <!-- 📰 主內容區 -->
+<header class="bg-[var(--bg-card)] shadow-sm border-b border-[var(--border-color)] sticky top-0 z-50">
+  <div class="container mx-auto px-6 py-4 flex flex-wrap md:flex-nowrap justify-between items-center">
+    <a href="/" class="flex items-center space-x-3">
+      <img src="https://i.postimg.cc/Z5xySH6x/da-tou-zhao.png" alt="KAE 的大頭照" class="w-10 h-10 mx-auto">
+      <h1 class="text-2xl md:text-3xl font-bold text-[var(--text-primary)]">KAE的雜記</h1>
+    </a>
+    <nav class="hidden md:flex space-x-6">
+      <a href="/" class="text-[var(--text-secondary)] hover:text-[var(--accent-color)]">首頁</a>
+      <a href="/about" class="text-[var(--text-secondary)] hover:text-[var(--accent-color)]">關於我</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container mx-auto px-6 py-12">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-12">
+    
+    <!-- 主內容區 -->
     <div class="md:col-span-2 space-y-12">
 
-      <!-- 最新文章區塊 -->
+      <!-- 最新文章區 -->
       <section>
-        <h2 class="text-3xl font-bold text-[var(--text-primary)] mb-6 pb-3 border-b border-[var(--border-color)]">
-          最新文章
-        </h2>
-
+        <h2 class="text-3xl font-bold text-[var(--text-primary)] mb-6 pb-3 border-b border-[var(--border-color)]">最新文章</h2>
         <div class="space-y-4">
-          {allPosts.map(post => (
+          {latestPosts.map(post => (
             <article class="bg-[var(--bg-card)] rounded-xl shadow-md flex items-center p-4 hover:shadow-lg transition-all duration-300">
-
-              <!-- 左側縮圖：使用 previewImage 1:1 -->
               <div class="w-24 h-24 flex-shrink-0 overflow-hidden border border-[var(--border-color)] mr-4 rounded-lg">
-                <img src={post.data.previewImage || '/images/default.png'} alt={post.data.title} class="w-full h-full object-cover" />
+                <img src={post.data.previewImage} alt={post.data.title} class="w-full h-full object-cover" />
               </div>
-
-              <!-- 右側文字內容 -->
               <div class="flex-1">
                 <h3 class="text-base sm:text-lg font-bold text-[var(--text-primary)] mb-1 line-clamp-2">
                   <a href={`/blog/${post.slug}`} class="hover:text-[var(--accent-color)] transition-colors">
                     {post.data.title}
                   </a>
                 </h3>
-                <p class="text-sm text-[var(--text-secondary)] line-clamp-2 mb-2">
-                  {post.data.description}
-                </p>
-
-                <!-- 日期 + 前3個 tags + 閱讀按鈕 -->
+                <p class="text-sm text-[var(--text-secondary)] line-clamp-2 mb-2">{post.data.description}</p>
                 <div class="flex flex-wrap items-center justify-between text-xs text-gray-500 gap-2">
-                  <span>{new Date(post.data.publishDate).toLocaleDateString('zh-TW')}</span>
+                  <span>{post.data.publishDate}</span>
                   <div class="flex flex-wrap gap-1">
-                    {post.data.tags?.slice(0, 3).map(tag => (
-                      <span class="px-2 py-0.5 rounded-md text-gray-700" style="background-color:#e7f0e2;">{tag}</span>
+                    {post.data.category?.slice(0,3).map(cat => (
+                      <span class="px-2 py-0.5 rounded-md text-gray-700" style="background-color:#e7f0e2;">{cat}</span>
                     ))}
                   </div>
-                  <a href={`/blog/${post.slug}`} class="text-[var(--accent-color)] hover:underline ml-auto">
-                    閱讀 →
-                  </a>
+                  <a href={`/blog/${post.slug}`} class="text-[var(--accent-color)] hover:underline ml-auto">閱讀 →</a>
                 </div>
               </div>
             </article>
           ))}
         </div>
-
-        <!-- 查看所有文章 -->
         <div class="text-right mt-4">
-          <a href="/blog" class="text-[var(--accent-color)] font-semibold hover:underline">
-            查看所有文章 →
-          </a>
+          <a href="/category/最新文章" class="text-[var(--accent-color)] hover:underline font-semibold">查看所有文章 &rarr;</a>
         </div>
       </section>
 
-      <!-- 精選文章區塊 -->
+      <!-- 精選文章區 -->
       <section>
-        <h2 class="text-3xl font-bold text-[var(--text-primary)] mb-6 pb-3 border-b border-[var(--border-color)]">
-          精選文章
-        </h2>
-
+        <h2 class="text-3xl font-bold text-[var(--text-primary)] mb-6 pb-3 border-b border-[var(--border-color)]">精選文章</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {featuredPosts.map(post => (
             <article class="bg-[var(--bg-card)] rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden">
-              
-              <!-- 精選橫式 16:9 heroImage -->
               <div class="w-full aspect-video overflow-hidden">
-                <img src={post.data.heroImage || '/images/default.png'} alt={post.data.title} class="w-full h-full object-cover" />
+                <img src={post.data.heroImage} alt={post.data.title} class="w-full h-full object-cover" />
               </div>
-
-              <div class="p-4 sm:p-6">
+              <div class="p-4">
                 <h3 class="text-lg font-bold text-[var(--text-primary)] mb-2 line-clamp-2">
-                  <a href={`/blog/${post.slug}`} class="hover:text-[var(--accent-color)] transition-colors">
-                    {post.data.title}
-                  </a>
+                  <a href={`/blog/${post.slug}`} class="hover:text-[var(--accent-color)] transition-colors">{post.data.title}</a>
                 </h3>
-                <p class="text-[var(--text-secondary)] text-sm leading-relaxed mb-2 line-clamp-3">
-                  {post.data.description}
-                </p>
-
-                <!-- 日期 + 前3個 tags + 閱讀按鈕 -->
+                <p class="text-sm text-[var(--text-secondary)] line-clamp-3 mb-2">{post.data.description}</p>
                 <div class="flex flex-wrap items-center justify-between text-xs text-gray-500 gap-2">
-                  <span>{new Date(post.data.publishDate).toLocaleDateString('zh-TW')}</span>
+                  <span>{post.data.publishDate}</span>
                   <div class="flex flex-wrap gap-1">
-                    {post.data.tags?.slice(0, 3).map(tag => (
-                      <span class="px-2 py-0.5 rounded-md text-gray-700" style="background-color:#e7f0e2;">{tag}</span>
+                    {post.data.category?.slice(0,3).map(cat => (
+                      <span class="px-2 py-0.5 rounded-md text-gray-700" style="background-color:#e7f0e2;">{cat}</span>
                     ))}
                   </div>
-                  <a href={`/blog/${post.slug}`} class="text-[var(--accent-color)] hover:underline ml-auto">
-                    閱讀 →
-                  </a>
+                  <a href={`/blog/${post.slug}`} class="text-[var(--accent-color)] hover:underline ml-auto">閱讀 →</a>
                 </div>
               </div>
             </article>
           ))}
         </div>
-
-        <!-- 查看更多精選文章 -->
         <div class="text-right mt-4">
-          <a href="/category/精選文章" class="text-[var(--accent-color)] font-semibold hover:underline">
-            查看更多精選文章 →
-          </a>
+          <a href="/category/精選文章" class="text-[var(--accent-color)] hover:underline font-semibold">查看更多精選文章 &rarr;</a>
         </div>
       </section>
 
     </div>
 
     <!-- 側邊欄 -->
-    <Sidebar />
+    <aside class="md:col-span-1 space-y-8">
+      <div class="bg-[var(--bg-card)] p-6 rounded-xl shadow-lg text-center">
+        <img src="https://i.postimg.cc/Z5xySH6x/da-tou-zhao.png" alt="かえ (KAE) 的大頭照" class="w-32 mb-4 mx-auto" />
+        <h3 class="text-2xl font-bold text-[var(--text-primary)] mb-2">かえ (KAE)</h3>
+        <p class="text-[var(--text-secondary)] text-base leading-relaxed px-2">
+          KAE です！ 這個部落格會來記錄我即將展開的日本交換生活，也會分享留學的事前申請、日本旅遊等經驗。
+        </p>
+        <a href="/about" class="text-sm font-semibold text-[var(--accent-color)] hover:text-[var(--accent-hover)] transition-colors mt-4 inline-block">閱讀更多關於我 &rarr;</a>
+      </div>
 
+      <div class="bg-[var(--bg-card)] p-6 rounded-xl shadow-lg">
+        <h3 class="text-xl font-bold text-[var(--text-primary)] mb-4">文章分類</h3>
+        <ul class="space-y-2">
+          {allPosts.flatMap(p => p.data.category).filter(Boolean).reduce((acc, cat) => {
+            if (!acc.includes(cat)) acc.push(cat);
+            return acc;
+          }, []).map(cat => (
+            <li>
+              <a href={`/category/${cat}`} class="block text-[var(--text-secondary)] hover:text-[var(--accent-color)] transition-colors">{cat}</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </aside>
   </div>
-</BaseLayout>
+</main>
+
+<footer class="text-center text-[var(--text-secondary)] py-10 mt-12 border-t border-[var(--border-color)]">
+  <p>&copy; 2025 KAE的雜記. All rights reserved.</p>
+</footer>
+
+</body>
+</html>
