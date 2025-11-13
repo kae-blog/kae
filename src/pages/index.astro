@@ -8,9 +8,9 @@ import { getCollection } from 'astro:content';
 const allPosts = await getCollection('blog');
 allPosts.sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime());
 
-// 以 tags 判斷精選文章
-const featuredPosts = allPosts.filter(p => p.data.tags && p.data.tags.includes('精選'));
-const latestPosts = allPosts.slice(0, 6);
+// 分類出精選文章（假設有 category: '精選'）
+const featuredPosts = allPosts.filter(p => p.data.category === '精選');
+const latestPosts = allPosts.slice(0, 6); // 只取最新六篇
 
 // 日期格式化：2025/11/13
 const formatDate = (date) => {
