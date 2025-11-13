@@ -1,7 +1,5 @@
 ---
 // src/pages/index.astro
-// 這是你的「首頁」
-
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Sidebar from '../components/Sidebar.astro';
 import { getCollection } from 'astro:content';
@@ -19,9 +17,8 @@ allPosts.sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data
 
             {allPosts.map(post => (
                 // --- 修改點 1 ---
-                // flex -> flex flex-col md:flex-row
-                // 手機上垂直堆疊，電腦上才水平排列
-                <article class="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden mb-8 flex flex-col md:flex-row transition-all duration-300 hover:shadow-xl">
+                // 移除 flex-col md:flex-row，強制使用 flex-row
+                <article class="bg-[var(--bg-card)] rounded-xl shadow-lg overflow-hidden mb-8 flex flex-row transition-all duration-300 hover:shadow-xl">
                     
                     <div class="p-6 md:p-8 flex-1">
                         <div class="mb-2">
@@ -41,8 +38,8 @@ allPosts.sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data
                         </div>
                     </div>
 
-                    <div class="w-full md:w-1/3 md:max-w-[180px] flex-shrink-0">
-                        <img src={post.data.previewImage} alt="文章預覽圖" class="w-full h-full object-cover aspect-square">
+                    <div class="w-1/3 max-w-[160px] flex-shrink-0">
+                        <img src={post.data.previewImage} alt="文章預覽圖" class="w-full h-full object-cover">
                     </div>
                 </article>
             ))}
@@ -52,5 +49,4 @@ allPosts.sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data
         <Sidebar />
 
     </div>
-
 </BaseLayout>
