@@ -8,11 +8,11 @@ import { getCollection } from 'astro:content';
 const allPosts = await getCollection('blog');
 allPosts.sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime());
 
-// 分類出精選文章（假設有 category: '精選'）
-const featuredPosts = allPosts.filter(p => p.data.category === '精選');
-const latestPosts = allPosts.slice(0, 6); // 只取最新六篇
+// 以 tags 判斷精選文章
+const featuredPosts = allPosts.filter(p => p.data.tags && p.data.tags.includes('精選'));
+const latestPosts = allPosts.slice(0, 6);
 
-// 日期格式化（2025/11/13）
+// 日期格式化：2025/11/13
 const formatDate = (date) => {
   const d = new Date(date);
   return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
@@ -22,7 +22,7 @@ const formatDate = (date) => {
 <BaseLayout>
   <div class="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-12">
 
-    <!-- 主要內容 -->
+    <!-- 主內容 -->
     <div class="md:col-span-2 space-y-12">
 
       <!-- 📰 最新文章 -->
@@ -34,7 +34,7 @@ const formatDate = (date) => {
         <div class="space-y-4">
           {latestPosts.map(post => (
             <article class="bg-[var(--bg-card)] rounded-xl shadow-md flex items-center p-4 hover:shadow-lg transition-all duration-300">
-              <!-- 左側縮圖（方形） -->
+              <!-- 左側縮圖 -->
               <div class="w-24 h-24 flex-shrink-0 overflow-hidden border border-[var(--border-color)] mr-4 rounded-lg">
                 <img 
                   src={post.data.heroImage || '/images/2511/0.png'} 
@@ -50,12 +50,24 @@ const formatDate = (date) => {
                     {post.data.title}
                   </a>
                 </h3>
+
                 <p class="text-sm text-[var(--text-secondary)] line-clamp-2 mb-2">
                   {post.data.description}
                 </p>
-                <div class="flex justify-between text-xs text-gray-500">
+
+                <div class="flex flex-wrap items-center justify-between text-xs text-gray-500 gap-2">
                   <span>{formatDate(post.data.publishDate)}</span>
-                  <a href={`/blog/${post.slug}`} class="text-[var(--accent-color)] hover:underline">
+
+                  <!-- 顯示前3個標籤 -->
+                  <div class="flex flex-wrap gap-1">
+                    {post.data.tags?.slice(0, 3).map(tag => (
+                      <span class="px-2 py-0.5 rounded-md text-gray-700" style="background-color:#e7f0e2;">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  <a href={`/blog/${post.slug}`} class="text-[var(--accent-color)] hover:underline ml-auto">
                     閱讀 →
                   </a>
                 </div>
@@ -66,34 +78,45 @@ const formatDate = (date) => {
       </section>
 
       <!-- 🌟 精選文章 -->
-      <section>
-        <h2 class="text-3xl font-bold text-[var(--text-primary)] mb-6 pb-3 border-b border-[var(--border-color)]">
-          精選文章
-        </h2>
+      {featuredPosts.length > 0 && (
+        <section>
+          <h2 class="text-3xl font-bold text-[var(--text-primary)] mb-6 pb-3 border-b border-[var(--border-color)]">
+            精選文章
+          </h2>
 
-        <div class="grid sm:grid-cols-2 gap-6">
-          {featuredPosts.map(post => (
-            <article class="bg-[var(--bg-card)] rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300">
-              <img 
-                src={post.data.featureImage || '/images/featured_default.png'} 
-                alt={post.data.title} 
-                class="w-full aspect-video object-cover" 
-              />
-              <div class="p-5">
-                <h3 class="text-lg font-semibold mb-2 line-clamp-2">
-                  <a href={`/blog/${post.slug}`} class="hover:text-[var(--accent-color)] transition-colors">
-                    {post.data.title}
-                  </a>
-                </h3>
-                <p class="text-sm text-[var(--text-secondary)] mb-3 line-clamp-3">
-                  {post.data.description}
-                </p>
-                <span class="text-sm text-gray-500">{formatDate(post.data.publishDate)}</span>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
+          <div class="grid sm:grid-cols-2 gap-6">
+            {featuredPosts.map(post => (
+              <article class="bg-[var(--bg-card)] rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300">
+                <img 
+                  src={post.data.featureImage || '/images/featured_default.png'} 
+                  alt={post.data.title} 
+                  class="w-full aspect-video object-cover" 
+                />
+                <div class="p-5">
+                  <h3 class="text-lg font-semibold mb-2 line-clamp-2">
+                    <a href={`/blog/${post.slug}`} class="hover:text-[var(--accent-color)] transition-colors">
+                      {post.data.title}
+                    </a>
+                  </h3>
+
+                  <p class="text-sm text-[var(--text-secondary)] mb-3 line-clamp-3">
+                    {post.data.description}
+                  </p>
+
+                  <div class="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+                    <span>{formatDate(post.data.publishDate)}</span>
+                    {post.data.tags?.slice(0, 3).map(tag => (
+                      <span class="px-2 py-0.5 rounded-md text-gray-700" style="background-color:#e7f0e2;">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
 
     <!-- 側邊欄 -->
