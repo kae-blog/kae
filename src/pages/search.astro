@@ -1,29 +1,33 @@
 ---
-// src/pages/search.astro (這是修正後的完整版本)
+// src/pages/search.astro (這是真正修正後的完整版本)
 
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 
-// --- 修正 1: 分開處理「顯示用」和「搜尋用」的關鍵字 ---
-// 顯示用：保留原始大小寫，用於填入 input value
+// 1. 抓取關鍵字
+// displayQuery 用於顯示 (保留大小寫)
+// searchQuery 用於搜尋 (轉為小寫)
 const displayQuery = Astro.url.searchParams.get('q') || null; 
-
-// 搜尋用：全部轉小寫，用於比對
 const searchQuery = displayQuery?.toLowerCase() || null;
 
 let filteredPosts = [];
 
-// --- 修正 2: 使用「searchQuery」來過濾 ---
+// 2. 如果有關鍵字，才執行搜尋
 if (searchQuery) {
   const allPosts = await getCollection('blog');
+  
   filteredPosts = allPosts.filter(post => {
     const title = post.data.title.toLowerCase();
     const description = post.data.description.toLowerCase();
     
-    // --- 修正 3: 移除 post.body 搜尋 ---
-    // post.body 在 getCollection() 中是 undefined，會導致錯誤
-    // 我們只搜尋標題和描述，這是最快且最安全的方法
-    return title.includes(searchQuery) || description.includes(searchQuery);
+    // --- 關鍵修正：把 post.body 加回來 ---
+    // post.body 是可用的，它代表文章的「原始 Markdown 內文」
+    const body = post.body.toLowerCase(); 
+
+    // 搜尋 標題、描述、或內文
+    return title.includes(searchQuery) || 
+           description.includes(searchQuery) || 
+           body.includes(searchQuery);
   });
 }
 ---
@@ -44,7 +48,6 @@ if (searchQuery) {
             </button>
         </form>
 
-        {/* --- 修正 5: 顯示時，也使用 displayQuery --- */}
         {searchQuery ? (
             <>
                 <p class="text-lg text-[var(--text-secondary)] mb-6">
@@ -82,7 +85,7 @@ if (searchQuery) {
                     </div>
                 ) : (
                     <p class="text-center text-gray-500 text-lg py-10">
-                        找不到任何符合「<span classF="font-bold text-[var(--text-primary)]">{displayQuery}</span>」的文章 😅
+                        找不到任何符合「<span class="font-bold text-[var(--text-primary)]">{displayQuery}</span>」的文章 😅
                     </p>
                 )}
             </>
