@@ -3,8 +3,8 @@ title: |-
   日本交換學生攻略 大一也能申請！
   校內甄選到出發準備全流程
 publishDate: !!date 2025-11-13
-previewImage: "/images/2511/0.png"     # 最新文章用縮圖 1:1
-heroImage: "/images/2511/ryuugakumae_1.png"     # 精選文章用橫圖 16:9
+previewImage: "/images/2511/0.png"
+heroImage: "/images/2511/ryuugakumae_1.png"
 category: ["日本留學", "精選文章"]
 description: "分享申請交換的「後續準備」階段。從確定獲得學校推薦資格後，到實際出發前，有哪些繁瑣的流程和文件要處理。"
 ---
