@@ -126,18 +126,24 @@ const { siteTitle = "KAE的雜記 - 日本留學與生活" } = Astro.props;
         <p>&copy; 2025 KAE的雜記. All rights reserved.</p>
     </footer>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const menuButton = document.getElementById('mobile-menu-button');
-            const menuContent = document.getElementById('mobile-menu-content');
+<script>
+    function setupMenu() {
+        const menuButton = document.getElementById('mobile-menu-button');
+        const menuContent = document.getElementById('mobile-menu-content');
 
-            if (menuButton && menuContent) {
-                menuButton.addEventListener('click', () => {
-                    // 切換 .hidden class 來顯示/隱藏選單
-                    menuContent.classList.toggle('hidden');
-                });
-            }
-        });
-    </script>
+        if (menuButton && menuContent) {
+            // 使用 .onclick 來指派功能，可以避免重複綁定監聽器
+            menuButton.onclick = () => {
+                menuContent.classList.toggle('hidden');
+            };
+        }
+    }
+
+    // 1. 為了初次載入，直接執行一次
+    setupMenu();
+
+    // 2. 為了後續的頁面轉場，監聽 astro:page-load 事件
+    document.addEventListener('astro:page-load', setupMenu);
+</script>
 </body>
 </html>
