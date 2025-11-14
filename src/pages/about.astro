@@ -1,192 +1,33 @@
 ---
-// 檔案路徑: src/pages/archive.astro (已更新 script)
+// src/pages/about.astro
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Sidebar from '../components/Sidebar.astro';
-import { getCollection } from 'astro:content';
+import author from '../data/author.json';
 
-const formatDate = (date: Date) => {
-  const d = new Date(date);
-  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
-};
-
-const allPosts = (await getCollection('blog')).sort(
-  (a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime()
-);
-
-// --- 修正 4a: 取得所有唯一的分類，用於篩選器 ---
-const allCategories = [...new Set(allPosts.flatMap(post => post.data.category))];
+// 處理 \n 換行符號，將它們轉換為 <br>
+const formattedBio = author.fullBio.replaceAll('\n', '<br />');
 ---
-<BaseLayout pageTitle="所有文章" description="KAE的雜記中所有的文章彙整。">
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-12">
-        <div class="md:col-span-2 space-y-12">
-      <section>
-        <h2 class="text-2xl font-bold text-[var(--text-primary)] mb-6 pb-3 border-b border-[var(--border-color)]">
-          所有文章 ({allPosts.length})
-        </h2>
+<BaseLayout
+  pageTitle={` ${author.name}`}
+  description={author.footerBio}
+>
 
-        <div class="mb-8 p-4 bg-[var(--bg-card)] rounded-lg shadow-md">
-          <div class="mb-4">
-            <input 
-              type="search" 
-              id="search-input" 
-              placeholder="在此頁面中搜尋..."
-              class="w-full px-3 py-2 rounded-md border border-[var(--border-color)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
+    <div class="max-w-4xl mx-auto bg-[var(--bg-card)] p-8 md:p-12 rounded-xl shadow-lg">
+        
+        <div class="flex flex-col md:flex-row items-center">
+            <img 
+              src={author.avatar} 
+              alt={`${author.name} 的大頭照`}
+              class="w-40 h-40 md:w-48 md:h-48 mb-6 md:mb-0 md:mr-10 flex-shrink-0"
             >
-          </div>
-          <div class="flex flex-wrap gap-2">
-            <button 
-              data-category-filter="all" 
-              class="category-filter-btn active text-xs font-medium text-white bg-[var(--accent-color)] py-1 px-3 rounded-full hover:bg-[var(--accent-hover)] transition-colors"
-            >
-              全部
-            </button>
-            {allCategories.map(cat => (
-              <button 
-                data-category-filter={cat}
-                class="category-filter-btn text-xs font-medium text-[var(--text-secondary)] bg-gray-100 py-1 px-3 rounded-full hover:bg-gray-200 transition-colors"
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-        
-        <div id="no-results-message" class="hidden text-center text-gray-500 py-10">
-          <p>找不到符合條件的文章 😅</p>
-        </div>
+            
+                        <div class="w-full text-left">
+                              <h2 class="text-3xl md:text-4xl font-bold text-[var(--text-primary)] mb-4"> {author.name}</h2>
+                <div class="prose max-w-none">
+                    <p class="text-xl leading-relaxed" set:html={formattedBio} />
+                </div>
+            </div>
+        </div>
 
-        <div class="space-y-4" id="article-list-container">
-          {allPosts.map(post => {
-            // 把文章的標題、描述、分類、tags 全部變成一個可搜尋的字串
-            const searchableText = [
-              post.data.title,
-              post.data.description,
-              ...post.data.category,
-              ...(post.data.tags || [])
-            ].join(' ').toLowerCase();
+    </div>
 
-            return (
-              <article 
-                class="article-card bg-[var(--bg-card)] rounded-xl shadow-md flex items-center p-4 hover:shadow-lg transition-all duration-300"
-                data-search-text={searchableText}
-                data-category={post.data.category.join(' ')}
-              >
-                <div class="w-24 h-24 flex-shrink-0 overflow-hidden border border-[var(--border-color)] mr-4 rounded-lg">
-                  <img src={post.data.previewImage} alt={post.data.title} class="w-full h-full object-cover" />
-                </div>
-                <div class="flex-1 flex flex-col">
-                  <div class="mb-2 flex flex-wrap gap-1 justify-end">
-                    {post.data.category.map(cat => (
-                      <a href={`/category/${cat}`} class="text-xs font-medium text-white bg-[var(--accent-color)] py-1 px-2 rounded-full hover:bg-[var(--accent-hover)] transition-colors">
-                        {cat}
-                      </a>
-                    ))}
-                  </div>
-                  <div class="flex-grow">
-                    <h3 class="text-base font-bold text-[var(--text-primary)] mb-1 line-clamp-2">
-                      <a href={`/blog/${post.slug}`} class="hover:text-[var(--accent-color)] transition-colors whitespace-pre-line">
-                        {post.data.title}
-                      </a>
-                    </h3>
-                    <p class="text-sm text-[var(--text-secondary)] line-clamp-2 mb-2">{post.data.description}</p>
-                  </div>
-                  <div class="flex flex-wrap items-center justify-between text-xs text-gray-500 gap-x-2 gap-y-1">
-                    <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <span>{formatDate(post.data.publishDate)}</span>
-                      {post.data.tags?.slice(0, 1).map(tag => (
-                        <span class="px-2 py-0.5 rounded-md text-gray-700 text-xs" style="background-color: #e7f0e2;">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                    <a href={`/blog/${post.slug}`} class="text-[var(--accent-color)] hover:underline ml-auto">閱讀 &rarr;</a>
-                  </div>
-                </div>
-              </article>
-            )
-          })}
-        </div>
-      </section>
-    </div>
-    <Sidebar />
-  </div>
-
-  <script>
-    function setupArchiveFilters() {
-      // (1. 抓取所有元件)
-      const searchInput = document.getElementById('search-input') as HTMLInputElement;
-      const filterButtons = document.querySelectorAll('.category-filter-btn');
-      const articleCards = document.querySelectorAll('.article-card');
-      const noResultsMessage = document.getElementById('no-results-message');
-
-      if (!searchInput) return; // 如果不在這個頁面，就跳出
-
-      let currentSearch = '';
-      let currentCategory = 'all';
-
-      // --- (2. (新功能!) 讀取 URL 上的 'q' 參數 ---
-      const urlParams = new URLSearchParams(window.location.search);
-      const queryFromUrl = urlParams.get('q'); // 'q' 對應您 <input name="q">
-
-      if (queryFromUrl) {
-        searchInput.value = queryFromUrl; // 把它填入本頁的搜尋框
-        currentSearch = queryFromUrl.toLowerCase().trim(); // 更新篩選變數
-      }
-      // --- (新功能結束) ---
-
-      // (3. 核心篩選函式)
-      function runFilter() {
-        let visibleCount = 0;
-        
-        articleCards.forEach(card => {
-          const el = card as HTMLElement; // 轉型為 HTMLElement
-          const searchText = el.dataset.searchText || ''; // 使用 dataset
-          const categories = el.dataset.category || ''; // 使用 dataset
-
-          const matchesSearch = searchText.includes(currentSearch);
-          const matchesCategory = currentCategory === 'all' || categories.includes(currentCategory);
-
-          if (matchesSearch && matchesCategory) {
-            el.style.display = 'flex';
-            visibleCount++;
-          } else {
-            el.style.display = 'none';
-          }
-        });
-
-        if (noResultsMessage) { // D 檢查 noResultsMessage 是否存在
-          noResultsMessage.style.display = visibleCount === 0 ? 'block' : 'none';
-        }
-      }
-
-      // (4. 綁定事件監聽)
-      searchInput.addEventListener('input', (e) => {
-        currentSearch = (e.target as HTMLInputElement).value.toLowerCase().trim();
-        runFilter();
-      });
-
-      filterButtons.forEach(button => {
-        button.addEventListener('click', () => {
-          filterButtons.forEach(btn => {
-            btn.classList.remove('active', 'text-white', 'bg-[var(--accent-color)]');
-            btn.classList.add('text-[var(--text-secondary)]', 'bg-gray-100'); 
-          });
-          
-          button.classList.add('active', 'text-white', 'bg-[var(--accent-color)]');
-          button.classList.remove('text-[var(--text-secondary)]', 'bg-gray-100'); 
-          
-          currentCategory = button.getAttribute('data-category-filter') || 'all';
-          runFilter();
-        });
-      });
-
-      // --- (5. (新功能!) 頁面載入時，立即執行一次篩選) ---
-      // 這會處理掉從 URL 帶來的關鍵字
-      runFilter();
-    } // 👈 檢查：setupArchiveFilters 的 }
-
-    // 確保在 Astro 頁面轉場時也能正確執行
-    document.addEventListener('astro:page-load', setupArchiveFilters);
-    setupArchiveFilters(); // 也執行一次
-  </script>
 </BaseLayout>
