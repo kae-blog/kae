@@ -1,0 +1,66 @@
+---
+// 檔案路徑: src/pages/archive.astro (這是一個新檔案)
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Sidebar from '../components/Sidebar.astro';
+import { getCollection } from 'astro:content';
+
+// (這是你 index.astro 裡的函式，我們複製過來用)
+const formatDate = (date: Date) => {
+  const d = new Date(date);
+  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+};
+
+// 1. 抓取所有文章並排序
+const allPosts = (await getCollection('blog')).sort(
+  (a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime()
+);
+---
+<BaseLayout pageTitle="所有文章" description="KAE的雜記中所有的文章彙整。">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-12">
+        <div class="md:col-span-2 space-y-12">
+      <section>
+        <h2 class="text-3xl font-bold text-[var(--text-primary)] mb-6 pb-3 border-b border-[var(--border-color)]">
+          所有文章 ({allPosts.length})
+        </h2>
+        <div class="space-y-4">
+                    {allPosts.map(post => (
+            <article class="bg-[var(--bg-card)] rounded-xl shadow-md flex items-center p-4 hover:shadow-lg transition-all duration-300">
+              <div class="w-24 h-24 flex-shrink-0 overflow-hidden border border-[var(--border-color)] mr-4 rounded-lg">
+                <img src={post.data.previewImage} alt={post.data.title} class="w-full h-full object-cover" />
+              </div>
+              <div class="flex-1 flex flex-col">
+                <div class="mb-2 flex flex-wrap gap-1 justify-end">
+                  {post.data.category.map(cat => (
+                    <a href={`/category/${cat}`} class="text-xs font-medium text-white bg-[var(--accent-color)] py-1 px-2 rounded-full hover:bg-[var(--accent-hover)] transition-colors">
+                      {cat}
+                    </a>
+                  ))}
+                </div>
+                <div class="flex-grow">
+                  <h3 class="text-lg font-bold text-[var(--text-primary)] mb-1 line-clamp-2">
+                    <a href={`/blog/${post.slug}`} class="hover:text-[var(--accent-color)] transition-colors whitespace-pre-line">
+                      {post.data.title}
+                    </a>
+                  </h3>
+                  <p class="text-sm text-[var(--text-secondary)] line-clamp-2 mb-2">{post.data.description}</p>
+                </div>
+                <div class="flex flex-wrap items-center justify-between text-xs text-gray-500 gap-x-2 gap-y-1">
+                  <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span>{formatDate(post.data.publishDate)}</span>
+                    {post.data.tags?.slice(0, 3).map(tag => (
+                      <span class="px-2 py-0.5 rounded-md text-white text-xs" style="background-color: var(--accent-color);">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <a href={`/blog/${post.slug}`} class="text-[var(--accent-color)] hover:underline ml-auto">閱讀 &rarr;</a>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    </div>
+    <Sidebar />
+  </div>
+</BaseLayout>
