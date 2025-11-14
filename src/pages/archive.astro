@@ -1,12 +1,12 @@
 ---
-// 檔案路徑: src/pages/archive.astro
+// 檔案路徑: src/pages/archive.astro (已更新 script)
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Sidebar from '../components/Sidebar.astro';
 import { getCollection } from 'astro:content';
 
 const formatDate = (date: Date) => {
-  const d = new Date(date);
-  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+  const d = new Date(date);
+  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
 };
 
 const allPosts = (await getCollection('blog')).sort(
@@ -17,10 +17,10 @@ const allPosts = (await getCollection('blog')).sort(
 const allCategories = [...new Set(allPosts.flatMap(post => post.data.category))];
 ---
 <BaseLayout pageTitle="所有文章" description="KAE的雜記中所有的文章彙整。">
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-12">
-        <div class="md:col-span-2 space-y-12">
-      <section>
-        <h2 class="text-2xl font-bold text-[var(--text-primary)] mb-6 pb-3 border-b border-[var(--border-color)]">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-12">
+        <div class="md:col-span-2 space-y-12">
+      <section>
+        <h2 class="text-2xl font-bold text-[var(--text-primary)] mb-6 pb-3 border-b border-[var(--border-color)]">
           所有文章 ({allPosts.length})
         </h2>
 
@@ -55,8 +55,8 @@ const allCategories = [...new Set(allPosts.flatMap(post => post.data.category))]
           <p>找不到符合條件的文章 😅</p>
         </div>
 
-        <div class="space-y-4" id="article-list-container">
-                    {allPosts.map(post => {
+        <div class="space-y-4" id="article-list-container">
+          {allPosts.map(post => {
             // 把文章的標題、描述、分類、tags 全部變成一個可搜尋的字串
             const searchableText = [
               post.data.title,
@@ -71,10 +71,10 @@ const allCategories = [...new Set(allPosts.flatMap(post => post.data.category))]
                 data-search-text={searchableText}
                 data-category={post.data.category.join(' ')}
               >
-                <div class="w-24 h-24 flex-shrink-0 overflow-hidden border border-[var(--border-color)] mr-4 rounded-lg">
-                  <img src={post.data.previewImage} alt={post.data.title} class="w-full h-full object-cover" />
-                </div>
-                <div class="flex-1 flex flex-col">
+                <div class="w-24 h-24 flex-shrink-0 overflow-hidden border border-[var(--border-color)] mr-4 rounded-lg">
+                  <img src={post.data.previewImage} alt={post.data.title} class="w-full h-full object-cover" />
+                </div>
+                <div class="flex-1 flex flex-col">
                   <div class="mb-2 flex flex-wrap gap-1 justify-end">
                     {post.data.category.map(cat => (
                       <a href={`/category/${cat}`} class="text-xs font-medium text-white bg-[var(--accent-color)] py-1 px-2 rounded-full hover:bg-[var(--accent-hover)] transition-colors">
@@ -84,13 +84,13 @@ const allCategories = [...new Set(allPosts.flatMap(post => post.data.category))]
                   </div>
                   <div class="flex-grow">
                     <h3 class="text-base font-bold text-[var(--text-primary)] mb-1 line-clamp-2">
-                      <a href={`/blog/${post.slug}`} class="hover:text-[var(--accent-color)] transition-colors whitespace-pre-line">
-                        {post.data.title}
-                      </a>
-                    </h3>
-                    <p class="text-sm text-[var(--text-secondary)] line-clamp-2 mb-2">{post.data.description}</p>
+                      <a href={`/blog/${post.slug}`} class="hover:text-[var(--accent-color)] transition-colors whitespace-pre-line">
+                        {post.data.title}
+                      </a>
+                    </h3>
+                    <p class="text-sm text-[var(--text-secondary)] line-clamp-2 mb-2">{post.data.description}</p>
                   </div>
-                  <div class="flex flex-wrap items-center justify-between text-xs text-gray-500 gap-x-2 gap-y-1">
+                  <div class="flex flex-wrap items-center justify-between text-xs text-gray-500 gap-x-2 gap-y-1">
                     <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
                       <span>{formatDate(post.data.publishDate)}</span>
                       {post.data.tags?.slice(0, 1).map(tag => (
@@ -99,21 +99,24 @@ const allCategories = [...new Set(allPosts.flatMap(post => post.data.category))]
                         </span>
                       ))}
                     </div>
-                    <a href={`/blog/${post.slug}`} class="text-[var(--accent-color)] hover:underline ml-auto">閱讀 &rarr;</a>
-                  </div>
-                </div>
-              </article>
+                    <a href={`/blog/${post.slug}`} class="text-[var(--accent-color)] hover:underline ml-auto">閱讀 &rarr;</a>
+                  </div>
+                </div>
+              </article>
             )
           })}
-        </div>
-      </section>
-    </div>
-    <Sidebar />
-  </div>
+        </div>
+      </section>
+    </div>
+    <Sidebar />
+  </div>
 
   <script>
-    function setupArchiveFilters() {
-      const searchInput = document.getElementById('search-input');
+    // 確保在 Astro 頁面轉場時也能正確執行
+    document.addEventListener('astro:page-load', () => {
+      
+      // --- (1. 定義變數) ---
+      const searchInput = document.getElementById('search-input') as HTMLInputElement;
       const filterButtons = document.querySelectorAll('.category-filter-btn');
       const articleCards = document.querySelectorAll('.article-card');
       const noResultsMessage = document.getElementById('no-results-message');
@@ -123,53 +126,48 @@ const allCategories = [...new Set(allPosts.flatMap(post => post.data.category))]
       let currentSearch = '';
       let currentCategory = 'all';
 
+      // --- (2. 核心篩選函式) ---
       function runFilter() {
         let visibleCount = 0;
         
         articleCards.forEach(card => {
-          const searchText = card.getAttribute('data-search-text') || '';
-          const categories = card.getAttribute('data-category') || '';
+          const el = card as HTMLElement;
+          const searchText = el.dataset.searchText || ''; // 已在 HTML 轉為 lowercase
+          const categories = el.dataset.category || '';
 
-          // 1. 檢查搜尋 (Search)
           const matchesSearch = searchText.includes(currentSearch);
-          
-          // 2. 檢查分類 (Category)
           const matchesCategory = currentCategory === 'all' || categories.includes(currentCategory);
 
-          // 3. 必須同時符合兩者
           if (matchesSearch && matchesCategory) {
-            card.style.display = 'flex';
+            el.style.display = 'flex';
             visibleCount++;
           } else {
-            card.style.display = 'none';
+            el.style.display = 'none';
           }
         });
 
-        // 4. 顯示/隱藏「無結果」訊息
         noResultsMessage.style.display = visibleCount === 0 ? 'block' : 'none';
       }
 
-      // 監聽搜尋框
+      // --- (3. 綁定事件監聽) ---
       searchInput.addEventListener('input', (e) => {
         currentSearch = (e.target as HTMLInputElement).value.toLowerCase().trim();
         runFilter();
       });
 
-      // 監聽分類按鈕
       filterButtons.forEach(button => {
         button.addEventListener('click', () => {
-          // 更新按鈕樣式
           filterButtons.forEach(btn => btn.classList.remove('active', 'text-white', 'bg-[var(--accent-color)]'));
           button.classList.add('active', 'text-white', 'bg-[var(--accent-color)]');
           
-          currentCategory = button.getAttribute('data-category-filter');
+          currentCategory = button.getAttribute('data-category-filter') || 'all';
           runFilter();
         });
       });
-    }
 
-    // 確保在 Astro 頁面轉場時也能正確執行
-    document.addEventListener('astro:page-load', setupArchiveFilters);
-    setupArchiveFilters(); // 也執行一次
-  </script>
-</BaseLayout>
+      // --- (4. (新功能!) 頁面載入時，讀取 URL 上的關鍵字) ---
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryFromUrl = urlParams.get('q'); // 'q' 對應您 <input name="q">
+
+      if (queryFromUrl) {
+        searchInput.value = queryFromUrl; // 把它填入
