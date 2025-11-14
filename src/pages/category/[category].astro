@@ -1,13 +1,13 @@
 ---
-// 檔案路徑: src/pages/category/[category].astro (這是一個新檔案)
+// 檔案路徑: src/pages/category/[category].astro (已整合搜尋功能)
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Sidebar from '../../components/Sidebar.astro';
 import { getCollection } from 'astro:content';
 
 // (這是你 index.astro 裡的函式，我們複製過來用)
 const formatDate = (date: Date) => {
-  const d = new Date(date);
-  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+  const d = new Date(date);
+  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
 };
 
 // 1. 告訴 Astro 要產生哪些頁面
@@ -27,29 +27,59 @@ export async function getStaticPaths() {
 // 2. 取得這個頁面的分類名稱
 const { category } = Astro.params;
 
-// 3. 篩選出只屬於這個分類的文章
-const filteredPosts = (await getCollection('blog'))
+// 3. 取得「所有」文章 (用於篩選器) 和「已過濾」文章
+const allPosts = await getCollection('blog');
+const filteredPosts = allPosts
   .filter(post => post.data.category.includes(category))
   .sort(
     (a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime()
   );
 
+// --- 4. (新加入) 取得所有分類，為了產生篩選按鈕 ---
+const allCategories = allPosts.flatMap(post => post.data.category);
+const uniqueCategories = [...new Set(allCategories)].filter(Boolean); // .filter(Boolean) 是為了移除可能的空值
+
 const pageTitle = `分類：${category}`;
 ---
 <BaseLayout pageTitle={pageTitle} description={`查看 KAE的雜記 中「${category}」分類的所有文章。`}>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-12">
-        <div class="md:col-span-2 space-y-12">
-      <section>
-        <h2 class="text-3xl font-bold text-[var(--text-primary)] mb-6 pb-3 border-b border-[var(--border-color)]">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-12">
+    <div class="md:col-span-2 space-y-12">
+      <section>
+        <h2 class="text-3xl font-bold text-[var(--text-primary)] mb-6 pb-3 border-b border-[var(--border-color)]">
           分類：{category} ({filteredPosts.length})
         </h2>
-        <div class="space-y-4">
-                    {filteredPosts.map(post => (
-            <article class="bg-[var(--bg-card)] rounded-xl shadow-md flex items-center p-4 hover:shadow-lg transition-all duration-300">
-              <div class="w-24 h-24 flex-shrink-0 overflow-hidden border border-[var(--border-color)] mr-4 rounded-lg">
-                <img src={post.data.previewImage} alt={post.data.title} class="w-full h-full object-cover" />
-              </div>
-              <div class="flex-1 flex flex-col">
+
+        <div class="mb-8 p-4 bg-[var(--bg-card)] rounded-lg shadow-md">
+          <div class="mb-4">
+            <input type="search" id="search-input" placeholder="在此頁面中搜尋..." class="w-full px-3 py-2 rounded-md border border-[var(--border-color)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]">
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button data-category-filter="all" class="category-filter-btn active text-xs font-medium text-white bg-[var(--accent-color)] py-1 px-3 rounded-full hover:bg-[var(--accent-hover)] transition-colors">全部</button>
+            
+            {uniqueCategories.map(cat => (
+              <button 
+                data-category-filter={cat} 
+                class="category-filter-btn text-xs font-medium text-[var(--text-secondary)] bg-gray-100 py-1 px-3 rounded-full hover:bg-gray-200 transition-colors">
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div id="no-results-message" class="hidden text-center text-gray-500 py-10">
+          <p>找不到符合條件的文章 😅</p>
+        </div>
+        <div class="space-y-4" id="article-list-container">
+          {filteredPosts.map(post => (
+            <article 
+              class="article-card bg-[var(--bg-card)] rounded-xl shadow-md flex items-center p-4 hover:shadow-lg transition-all duration-300"
+              data-search-text={`${post.data.title} ${post.data.description} ${post.data.category.join(' ')} ${post.data.tags?.join(' ')}`}
+              data-category={post.data.category.join(' ')}
+            >
+              <div class="w-24 h-24 flex-shrink-0 overflow-hidden border border-[var(--border-color)] mr-4 rounded-lg">
+                <img src={post.data.previewImage} alt={post.data.title} class="w-full h-full object-cover" />
+              </div>
+              <div class="flex-1 flex flex-col">
                 <div class="mb-2 flex flex-wrap gap-1 justify-end">
                   {post.data.category.map(cat => (
                     <a href={`/category/${cat}`} class="text-xs font-medium text-white bg-[var(--accent-color)] py-1 px-2 rounded-full hover:bg-[var(--accent-hover)] transition-colors">
@@ -59,13 +89,13 @@ const pageTitle = `分類：${category}`;
                 </div>
                 <div class="flex-grow">
                   <h3 class="text-lg font-bold text-[var(--text-primary)] mb-1 line-clamp-2">
-                    <a href={`/blog/${post.slug}`} class="hover:text-[var(--accent-color)] transition-colors whitespace-pre-line">
-                      {post.data.title}
-                    </a>
-                  </h3>
-                  <p class="text-sm text-[var(--text-secondary)] line-clamp-2 mb-2">{post.data.description}</p>
+                    <a href={`/blog/${post.slug}`} class="hover:text-[var(--accent-color)] transition-colors whitespace-pre-line">
+                      {post.data.title}
+                    </a>
+                  </h3>
+                  <p class="text-sm text-[var(--text-secondary)] line-clamp-2 mb-2">{post.data.description}</p>
                 </div>
-                <div class="flex flex-wrap items-center justify-between text-xs text-gray-500 gap-x-2 gap-y-1">
+                <div class="flex flex-wrap items-center justify-between text-xs text-gray-500 gap-x-2 gap-y-1">
                   <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span>{formatDate(post.data.publishDate)}</span>
                     {post.data.tags?.slice(0, 3).map(tag => (
@@ -74,14 +104,120 @@ const pageTitle = `分類：${category}`;
                       </span>
                     ))}
                   </div>
-                  <a href={`/blog/${post.slug}`} class="text-[var(--accent-color)] hover:underline ml-auto">閱讀 &rarr;</a>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-    </div>
-    <Sidebar />
-  </div>
+                  <a href={`/blog/${post.slug}`} class="text-[var(--accent-color)] hover:underline ml-auto">閱讀 &rarr;</a>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+        </section>
+    </div>
+    <Sidebar />
+  </div>
 </BaseLayout>
+
+
+<script>
+  // 讓 <head> 中的 ViewTransitions API 知道這個頁面有動態內容
+  document.addEventListener('astro:page-load', () => {
+    
+    const searchInput = document.getElementById('search-input') as HTMLInputElement;
+    const articleListContainer = document.getElementById('article-list-container');
+    // 我們只抓取這個容器內的 article-card，避免選到側邊欄的
+    const articles = articleListContainer?.querySelectorAll('.article-card') || [];
+    const noResultsMessage = document.getElementById('no-results-message');
+    const categoryButtons = document.querySelectorAll('.category-filter-btn');
+
+    // ----- 
+    // 邏輯：檢查當前 URL，自動點擊對應的分類按鈕
+    // ----- 
+    try {
+      // 1. 從 URL 獲取當前分類名稱 (例如 /category/日本留學 -> 日本留學)
+      // 我們用 Astro.params.category 的值，因為它已經解碼了
+      const currentCategory = (document.querySelector('h2.text-3xl') as HTMLElement)?.innerText.split('分類：')[1].split(' (')[0].trim();
+
+      if (currentCategory && currentCategory !== "undefined") {
+        // 2. 移除 "全部" 按鈕的 active 狀態
+        const allButton = document.querySelector('.category-filter-btn[data-category-filter="all"]');
+        allButton?.classList.remove('active', 'text-white', 'bg-[var(--accent-color)]');
+        allButton?.classList.add('text-[var(--text-secondary)]', 'bg-gray-100');
+        
+        // 3. 找到對應的分類按鈕並設為 active
+        const activeButton = document.querySelector(`.category-filter-btn[data-category-filter="${currentCategory}"]`);
+        if (activeButton) {
+          activeButton.classList.add('active', 'text-white', 'bg-[var(--accent-color)]');
+          activeButton.classList.remove('text-[var(--text-secondary)]', 'bg-gray-100');
+        }
+      }
+    } catch (e) {
+      console.error('Error auto-selecting category:', e);
+      // 如果出錯，就保持 "全部" 為 active
+    }
+
+
+    // ----- 
+    // 篩選主函式
+    // ----- 
+    function filterArticles() {
+      const searchTerm = searchInput.value.toLowerCase().trim();
+      
+      // 找到當前 "active" 的分類按鈕
+      const activeCategoryBtn = document.querySelector('.category-filter-btn.active');
+      const activeCategory = activeCategoryBtn?.getAttribute('data-category-filter') || 'all';
+
+      let hasVisibleArticles = false;
+
+      articles.forEach(article => {
+        const card = article as HTMLElement;
+        const searchText = card.dataset.searchText?.toLowerCase() || '';
+        const categories = card.dataset.category?.split(' ') || [];
+        
+        // 條件1: 搜尋文字
+        const matchesSearch = searchTerm === '' || searchText.includes(searchTerm);
+        
+        // 條件2: 分類
+        const matchesCategory = activeCategory === 'all' || categories.includes(activeCategory);
+
+        if (matchesSearch && matchesCategory) {
+          card.style.display = 'flex'; // (您的卡片是用 flex 佈局)
+          hasVisibleArticles = true;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      // 顯示/隱藏 "無結果" 訊息
+      if (noResultsMessage) {
+        noResultsMessage.style.display = hasVisibleArticles ? 'none' : 'block';
+      }
+    }
+
+    // ----- 
+    // 綁定事件監聽
+    // ----- 
+
+    // 監聽搜尋框輸入
+    searchInput?.addEventListener('input', filterArticles);
+
+    // 監聽分類按鈕點擊
+    categoryButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        // 移除所有按鈕的 active 狀態
+        categoryButtons.forEach(btn => {
+          btn.classList.remove('active', 'text-white', 'bg-[var(--accent-color)]');
+          btn.classList.add('text-[var(--text-secondary)]', 'bg-gray-100');
+        });
+        
+        // 為被點擊的按鈕添加 active 狀態
+        button.classList.add('active', 'text-white', 'bg-[var(--accent-color)]');
+        button.classList.remove('text-[var(--text-secondary)]', 'bg-gray-100');
+        
+        // 執行篩選
+        filterArticles();
+      });
+    });
+
+    // 頁面載入時，根據已選中的分類（例如 "日本留學"）先跑一次篩選
+    filterArticles();
+  });
+</script>
