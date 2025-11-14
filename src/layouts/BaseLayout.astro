@@ -3,6 +3,9 @@
 import { ViewTransitions } from 'astro:transitions';
 import author from '../data/author.json';
 
+// --- 修正 1: 處理 footerBio 的換行 ---
+const formattedFooterBio = author.footerBio.replaceAll('\n', '<br />');
+
 export interface Props {
     pageTitle?: string;
     description?: string;
@@ -44,6 +47,13 @@ const seoDescription = description || defaultDesc;
         .prose ul, .prose ol { padding-left: 1.75rem; }
         .prose li { margin-top: 0.5rem; margin-bottom: 0.5rem; }
         .prose blockquote { border-left: 4px solid var(--accent-color); padding-left: 1rem; color: var(--text-secondary); font-style: italic; }
+        
+        /* --- 修正 2: 加入日文字體 CSS --- */
+        /* 這會套用在 `about.astro` 的 .prose 區塊中 */
+        .prose [lang="ja"] {
+            font-family: 'Noto Sans JP', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+        }
+
         .nav-link.active { color: var(--accent-color); font-weight: 600; }
         .aspect-square { aspect-ratio: 1 / 1; }
     </style>
@@ -51,32 +61,7 @@ const seoDescription = description || defaultDesc;
 <body class="bg-[var(--bg-main)]">
 
     <header class="bg-[var(--bg-card)] shadow-sm border-b border-[var(--border-color)] sticky top-0 z-50">
-        <div class="container mx-auto px-6 py-4 flex flex-wrap md:flex-nowrap justify-between items-center">
-            <a href="/" class="flex items-center space-x-3">
-                <img src="https://i.postimg.cc/Z5xySH6x/da-tou-zhao.png" alt="KAE 的大頭照" class="w-10 h-10 mx-auto">
-                <h1 class="text-2xl md:text-3xl font-bold text-[var(--text-primary)]">
-                    KAE的雜記
-                </h1>
-            </a>
-            <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-[var(--text-primary)] hover:bg-gray-100">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-            </button>
-            <div id="mobile-menu-content" class="hidden md:flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 w-full md:w-auto mt-4 md:mt-0">
-                <nav>
-                    <ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6 text-right md:text-left">
-                        <li><a href="/" class="nav-link text-lg text-[var(--text-secondary)] hover:text-[var(--accent-color)] transition-colors">首頁</a></li>
-                        <li><a href="/archive" class="nav-link text-lg text-[var(--text-secondary)] hover:text-[var(--accent-color)] transition-colors">所有文章</a></li>
-                        <li><a href="/about" class="nav-link text-lg text-[var(--text-secondary)] hover:text-[var(--accent-color)] transition-colors">關於我</a></li>
-                    </ul>
-                </nav>
-                <form action="/search" method="GET" class="flex items-center space-x-2">
-                    <input type="text" name="q" placeholder="搜尋文章..." class="px-3 py-2 rounded-md border border-[var(--border-color)] text-sm text-[var(--text-primary)] bg-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]">
-                    <button type="submit" class="px-4 py-2 bg-[var(--accent-color)] text-white text-sm rounded-md hover:bg-[var(--accent-hover)] transition">
-                        搜尋
-                    </button>
-                </form>
-            </div>
-        </div>
+        <div class="container mx-auto px-6 py-4 flex flex-wrap md:flex-nowrap justify-between items-center"><a href="/" class="flex items-center space-x-3"><img src="https://i.postimg.cc/Z5xySH6x/da-tou-zhao.png" alt="KAE 的大頭照" class="w-10 h-10 mx-auto"><h1 class="text-2xl md:text-3xl font-bold text-[var(--text-primary)]">KAE的雜記</h1></a><button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-[var(--text-primary)] hover:bg-gray-100"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg></button><div id="mobile-menu-content" class="hidden md:flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 w-full md:w-auto mt-4 md:mt-0"><nav><ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6 text-right md:text-left"><li><a href="/" class="nav-link text-lg text-[var(--text-secondary)] hover:text-[var(--accent-color)] transition-colors">首頁</a></li><li><a href="/archive" class="nav-link text-lg text-[var(--text-secondary)] hover:text-[var(--accent-color)] transition-colors">所有文章</a></li><li><a href="/about" class="nav-link text-lg text-[var(--text-secondary)] hover:text-[var(--accent-color)] transition-colors">關於我</a></li></ul></nav><form action="/search" method="GET" class="flex items-center space-x-2"><input type="text" name="q" placeholder="搜尋文章..." class="px-3 py-2 rounded-md border border-[var(--border-color)] text-sm text-[var(--text-primary)] bg-white focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"><button type="submit" class="px-4 py-2 bg-[var(--accent-color)] text-white text-sm rounded-md hover:bg-[var(--accent-hover)] transition">搜尋</button></form></div></div>
     </header>
 
     <main class="container mx-auto px-6 py-12">
@@ -92,9 +77,8 @@ const seoDescription = description || defaultDesc;
                 </div>
                 <div class="ml-4 flex-1">
                     <h4 class="text-base font-bold text-[var(--text-primary)]">{author.name}</h4>
-                    <p class="text-sm text-[var(--text-secondary)]">
-                        {author.footerBio}
-                    </p>
+                    <p class="text-sm text-[var(--text-secondary)]" set:html={formattedFooterBio} />
+                    
                     <a href="/about" class="text-sm font-semibold text-[var(--accent-color)] hover:text-[var(--accent-hover)] transition-colors mt-1 inline-block">
                         閱讀更多 &rarr;
                     </a>
@@ -108,6 +92,7 @@ const seoDescription = description || defaultDesc;
     </footer>
 
     <script>
+        // ... (你的漢堡選單 <script> 保持不變，為節省篇幅已省略) ...
         function setupMenu() {
             const menuButton = document.getElementById('mobile-menu-button');
             const menuContent = document.getElementById('mobile-menu-content');
