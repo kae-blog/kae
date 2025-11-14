@@ -77,7 +77,11 @@ const seoDescription = description || defaultDesc;
                 </div>
                 <div class="ml-4 flex-1">
                     <h4 class="text-base font-bold text-[var(--text-primary)]">{author.name}</h4>
-                    <p class="text-sm text-[var(--text-secondary)]" set:html={formattedFooterBio} />
+<p 
+  class="text-sm text-[var(--text-secondary)]"
+  set:html={formattedFooterBio}
+></p>
+
                     
                     <a href="/about" class="text-sm font-semibold text-[var(--accent-color)] hover:text-[var(--accent-hover)] transition-colors mt-1 inline-block">
                         閱讀更多 &rarr;
