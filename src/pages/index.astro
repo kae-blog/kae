@@ -28,10 +28,10 @@ const latestPosts = allPosts
         <div class="md:col-span-2 space-y-12">
 
             <section>
-                <h2 class="text-2xl font-bold text-[var(--text-primary)] mb-6 pb-3 border-b border-[var(--border-color)]">最新文章</h2>
+        <h2 class="text-2xl font-bold text-[var(--text-primary)] mb-6 pb-3 border-b border-[var(--border-color)]">最新文章</h2>
         <div class="space-y-4">
           {latestPosts.map(post => (
-                        <article class="bg-[var(--bg-card)] rounded-xl shadow-md flex items-center p-4 hover:shadow-lg transition-all duration-300">
+            <article class="bg-[var(--bg-card)] rounded-xl shadow-md flex items-center p-4 hover:shadow-lg transition-all duration-300">
               <div class="w-24 h-24 flex-shrink-0 overflow-hidden border border-[var(--border-color)] mr-4 rounded-lg">
                 <img src={post.data.previewImage} alt={post.data.title} class="w-full h-full object-cover" />
               </div>
@@ -55,11 +55,13 @@ const latestPosts = allPosts
                 <div class="flex flex-wrap items-center justify-between text-xs text-gray-500 gap-x-2 gap-y-1">
                   <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span>{formatDate(post.data.publishDate)}</span>
-                    {post.data.tags?.slice(0, 3).map(tag => (
-                      <span class="px-2 py-0.5 rounded-md text-white text-xs" style="background-color: var(--accent-color);">
+                    
+                    {post.data.tags?.slice(0, 1).map(tag => (
+                      <span class="px-2 py-0.5 rounded-md text-gray-700 text-xs" style="background-color: #e7f0e2;">
                         {tag}
                       </span>
                     ))}
+
                   </div>
                   <a href={`/blog/${post.slug}`} class="text-[var(--accent-color)] hover:underline ml-auto">閱讀 &rarr;</a>
                 </div>
@@ -73,7 +75,7 @@ const latestPosts = allPosts
       </section>
 
             <section>
-                <h2 class="text-2xl font-bold text-[var(--text-primary)] mb-6 pb-3 border-b border-[var(--border-color)]">精選文章</h2>
+        <h2 class="text-2xl font-bold text-[var(--text-primary)] mb-6 pb-3 border-b border-[var(--border-color)]">精選文章</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {featuredPosts.map(post => (
             <article class="bg-[var(--bg-card)] rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden">
@@ -88,7 +90,7 @@ const latestPosts = allPosts
                     </a>
                   ))}
                 </div>
-                                <h3 class="text-base font-bold text-[var(--text-primary)] mb-2 line-clamp-2">
+                <h3 class="text-base font-bold text-[var(--text-primary)] mb-2 line-clamp-2">
                   <a href={`/blog/${post.slug}`} class="hover:text-[var(--accent-color)] transition-colors whitespace-pre-line">
                     {post.data.title}
                   </a>
@@ -97,20 +99,22 @@ const latestPosts = allPosts
                 <div class="flex flex-wrap items-center justify-between text-xs text-gray-500 gap-2">
                   <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span>{formatDate(post.data.publishDate)}</span>
-                    {post.data.tags?.slice(0, 3).map(tag => (
-                      <span class="px-2 py-0.5 rounded-md text-white text-xs" style="background-color: var(--accent-color);">
+                    
+                    {post.data.tags?.slice(0, 1).map(tag => (
+                      <span class="px-2 py-0.5 rounded-md text-gray-700 text-xs" style="background-color: #e7f0e2;">
                         {tag}
                       </span>
                     ))}
+
                   </div>
-                                    <a href={`/blog/${post.slug}`} class="text-[var(--accent-color)] hover:underline ml-auto">閱讀 &rarr;</a>
+                  <a href={`/blog/${post.slug}`} class="text-[var(--accent-color)] hover:underline ml-auto">閱讀 &rarr;</a>
                 </div>
               </div>
             </article>
           ))}
         </div>
         <div class="text-right mt-4">
-          <a href="/category/精選文章" class="text-[var(--accent-color)] hover:underline font-semibold">查看更多精選文章 &rarr;</a>
+G         <a href="/category/精選文章" class="text-[var(--accent-color)] hover:underline font-semibold">查看更多精選文章 &rarr;</a>
         </div>
       </section>
 
