@@ -2,6 +2,7 @@
 // src/layouts/BaseLayout.astro
 import { ViewTransitions } from 'astro:transitions';
 import author from '../data/author.json';
+import '../styles/global.css'; // 👈 答案就是這一行！
 
 // --- 修正 1: 處理 footerBio 的換行 ---
 const formattedFooterBio = author.footerBio.replaceAll('\n', '<br />');
