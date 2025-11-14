@@ -1,7 +1,6 @@
 ---
 // src/pages/about.astro
 import BaseLayout from '../layouts/BaseLayout.astro';
-// --- 修正 3a: 導入作者資訊 ---
 import author from '../data/author.json';
 
 // 處理 \n 換行符號，將它們轉換為 <br>
@@ -21,10 +20,10 @@ const formattedBio = author.fullBio.replaceAll('\n', '<br />');
               class="w-40 h-40 md:w-48 md:h-48 mb-6 md:mb-0 md:mr-10 flex-shrink-0"
             >
             
-            <div class="text-center md:text-left">
-                              <h2 class="text-4xl font-bold text-[var(--text-primary)] mb-4">關於 {author.name}</h2>
+                        <div class="w-full text-left">
+                              <h2 class="text-3xl md:text-4xl font-bold text-[var(--text-primary)] mb-4">關於 {author.name}</h2>
                 <div class="prose max-w-none">
-                                    <p class="text-xl leading-relaxed" set:html={formattedBio} />
+                    <p class="text-xl leading-relaxed" set:html={formattedBio} />
                 </div>
             </div>
         </div>
