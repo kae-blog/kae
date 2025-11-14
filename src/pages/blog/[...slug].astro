@@ -98,35 +98,33 @@ const { Content, headings } = await post.render();
 
       <div class="prose max-w-none">
         <Content />
-      </div>
+</div>
 
+    <footer class="mt-8 pt-6 border-t border-[var(--border-color)]">
+      
       {post.data.tags && post.data.tags.length > 0 && (
-<footer class="mt-8 pt-6 border-t border-[var(--border-color)]">
-  
-  <div class="flex flex-wrap items-center gap-2">
-    <span class="text-sm font-semibold text-[var(--text-secondary)]">Tags:</span>
-    
-    {post.data.tags?.map(tag => (
-      <span class="px-2 py-0.5 rounded-md text-gray-700 text-xs" style="background-color: #e7f0e2;">
-        {tag}
-      </span>
-    ))}
-  </div>
-
-  <div class="mt-6">
-    <span class="text-lg font-semibold text-[var(--text-primary)]">分享此文</span>
-    <div class="flex flex-wrap gap-2 mt-3">
-      <button 
-        id="copy-link-btn" 
-        class="text-sm font-medium text-white bg-[var(--accent-color)] py-1.5 px-3 rounded-full hover:bg-[var(--accent-hover)] transition-colors"
-      >
-        複製連結
-      </button>
-    </div>
-  </div>
-</footer>
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-sm font-semibold text-[var(--text-secondary)]">Tags:</span>
+          {post.data.tags.map(tag => (
+            <span class="px-2 py-0.5 rounded-md text-gray-700 text-xs" style="background-color: #e7f0e2;">
+              {tag}
+            </span>
+          ))}
+        </div>
       )}
 
+      <div class="mt-8">
+        <span class="text-lg font-semibold text-[var(--text-primary)]">分享此文</span>
+        <div class="flex flex-wrap gap-2 mt-3">
+          <button 
+            id="copy-link-btn" 
+            class="text-sm font-medium text-white bg-[var(--accent-color)] py-1.5 px-3 rounded-full hover:bg-[var(--accent-hover)] transition-colors"
+          >
+            複製連結
+          </button>
+        </div>
+      </div>
+    </footer>
     </article>
 
 <nav class="mt-8 grid grid-cols-1 gap-4">
@@ -159,5 +157,39 @@ const { Content, headings } = await post.render();
 
 
   </div>
-
+</div> <script>
+    // 監聽 Astro 頁面轉場
+    document.addEventListener('astro:page-load', () => {
+      const copyButton = document.getElementById('copy-link-btn');
+      
+      // 確保按鈕存在於這個頁面
+      if (copyButton) {
+        // 檢查是否已經綁定過事件，避免重複綁定
+        if (copyButton.dataset.listenerAttached !== 'true') {
+          
+          copyButton.addEventListener('click', () => {
+            // 抓取當前頁面的網址並複製
+            navigator.clipboard.writeText(window.location.href)
+              .then(() => {
+                // 提供反饋
+                const originalText = copyButton.textContent;
+                copyButton.textContent = '已複製！';
+                copyButton.disabled = true; // 暫時禁用按鈕
+                
+                setTimeout(() => {
+                  copyButton.textContent = originalText;
+                  copyButton.disabled = false; // 恢復按鈕
+                }, 2000); // 2 秒後恢復
+              })
+              .catch(err => {
+                console.error('無法複製連結: ', err);
+                copyButton.textContent = '複製失敗';
+              });
+          });
+          // 標記為已綁定
+          copyButton.dataset.listenerAttached = 'true';
+        }
+      }
+    });
+  </script>
 </BaseLayout>
