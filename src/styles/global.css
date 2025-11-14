@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 你的自訂 CSS */
+:root {
+  --bg-main: #e7f0e2;
+  --bg-card: #ffffff;
+  --text-primary: #333333;
+  --text-secondary: #555555;
+  --accent-color: #6a8b6a; 
+  --accent-hover: #587458; 
+  --border-color: #e5e5e5;
+}
+
+body {
+  font-family: 'Inter', 'Noto Sans TC', sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-size: 16px;
+}
+
+.prose { color: var(--text-secondary); }
+.prose h1, .prose h2, .prose h3 {
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 8px;
+}
+.prose h1 { font-size: 2rem; margin-bottom: 1.5rem; }
+.prose h2 { font-size: 1.5rem; margin-top: 2.5rem; margin-bottom: 1.25rem; }
+.prose h3 { font-size: 1.25rem; margin-top: 2rem; margin-bottom: 1rem; }
+.prose p, .prose li { font-size: 1rem; line-height: 1.75; margin-top: 1.25rem; margin-bottom: 1.25rem; }
+.prose strong { color: var(--text-primary); }
+.prose a { color: var(--accent-color); text-decoration: none; }
+.prose a:hover { text-decoration: underline; }
+.prose img { border-radius: 0.75rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: 1.5rem; margin-bottom: 1.5rem; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.prose ul, .prose ol { padding-left: 1.75rem; }
+.prose li { margin-top: 0.5rem; margin-bottom: 0.5rem; }
+.prose blockquote { border-left: 4px solid var(--accent-color); padding-left: 1rem; color: var(--text-secondary); font-style: italic; }
+
+/* 日文字體 */
+.prose [lang="ja"] {
+  font-family: 'Noto Sans JP', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+}
+
+.nav-link.active { color: var(--accent-color); font-weight: 600; }
+.aspect-square { aspect-ratio: 1 / 1; }
