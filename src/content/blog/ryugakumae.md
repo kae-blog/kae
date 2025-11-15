@@ -35,6 +35,9 @@ heroImage: '/images/2511/ryuugakumae_1.png'
 # 用途：卡片日期旁的輔助標籤、文章頁文末的標籤雲
 # 格式：[ ] 陣列。如果不需要，可以整行刪除
 tags: ['日本留學', '精選文章']
+
+# 自訂網址名稱
+slug: ryugakumae
 ---
 
 大家好！我是かえ（KAE）。
