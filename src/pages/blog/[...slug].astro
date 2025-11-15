@@ -130,7 +130,74 @@ const { Content, headings } = await post.render();
       </footer>
       </article>
 
-    <nav class="mt-8 grid grid-cols-1 gap-4">
+<div 
+        id="comment-section" 
+        class="mt-12 bg-[var(--bg-card)] rounded-xl shadow-lg p-8 md:p-12"
+        data-article-slug={post.slug} data-api-url={GOOGLE_SCRIPT_URL} >
+        <h3 class="text-2xl font-bold text-[var(--text-primary)] mb-6">訪客留言</h3>
+        
+        <form id="comment-form" class="space-y-4 mb-10">
+          <div>
+            <label for="comment-name" class="block text-sm font-semibold text-[var(--text-secondary)] mb-2">您的名稱 (必填)</label>
+            <input 
+              type="text" 
+              id="comment-name" 
+              name="name" 
+              required
+              class="w-full px-3 py-2 rounded-md border border-[var(--border-color)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
+            />
+          </div>
+          <div>
+            <label for="comment-email" class="block text-sm font-semibold text-[var(--text-secondary)] mb-2">您的 Email (選填，不會公開)</label>
+            <input 
+              type="email" 
+              id="comment-email" 
+              name="email"
+              class="w-full px-3 py-2 rounded-md border border-[var(--border-color)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
+            />
+          </div>
+          <div>
+            <label for="comment-content" class="block text-sm font-semibold text-[var(--text-secondary)] mb-2">您的留言 (必填)</label>
+            <textarea 
+              id="comment-content" 
+              name="content" 
+              rows="4" 
+              required
+              class="w-full px-3 py-2 rounded-md border border-[var(--border-color)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
+            ></textarea>
+          </div>
+          
+          <div class="flex items-center">
+            <input 
+              type="checkbox" 
+              id="comment-showOnSite" 
+              name="showOnSite" 
+              checked 
+              class="h-4 w-4 text-[var(--accent-color)] border-[var(--border-color)] rounded focus:ring-[var(--accent-color)]"
+            />
+            <label for="comment-showOnSite" class="ml-2 block text-sm text-[var(--text-secondary)]">
+              我同意將此留言（名稱與內容）公開顯示
+            </label>
+          </div>
+
+          <div class="pt-2">
+            <button 
+              type="submit"
+              id="comment-submit-btn"
+              class="px-5 py-2 bg-[var(--accent-color)] text-white text-base font-medium rounded-md hover:bg-[var(--accent-hover)] transition disabled:opacity-50"
+            >
+              送出留言
+            </button>
+            <span id="comment-success-msg" class="hidden ml-4 text-green-600 font-semibold">✓ 留言已送出！</span>
+            <span id="comment-error-msg" class="hidden ml-4 text-red-600 font-semibold">✗ 送出失敗，請稍後再試。</span>
+          </div>
+        </form>
+
+        <div id="comment-display-list" class="space-y-6 border-t border-[var(--border-color)] pt-10">
+          <p id="comment-loading-msg" class="text-center text-[var(--text-secondary)]">留言載入中...</p>
+          </div>
+      </div>
+      <nav class="mt-8 grid grid-cols-1 gap-4">
       {prevPost && (
         <a
           href={`/blog/${prevPost.slug}`}
@@ -208,11 +275,160 @@ const { Content, headings } = await post.render();
         }
       }
     }
+// ---------------------------------
+    // 2. Google Sheets 留言系統邏輯 (新加入的)
+    // ---------------------------------
+    function setupCommentSystem() {
+      const commentSection = document.getElementById('comment-section');
+      if (!commentSection) return; // 如果沒有留言區塊，就跳出
+      
+      const WEB_APP_URL = commentSection.dataset.apiUrl;
+      const ARTICLE_SLUG = commentSection.dataset.articleSlug;
+      
+      const commentForm = document.getElementById('comment-form') as HTMLFormElement;
+      const submitButton = document.getElementById('comment-submit-btn') as HTMLButtonElement;
+      const successMsg = document.getElementById('comment-success-msg');
+      const errorMsg = document.getElementById('comment-error-msg');
+      
+      const displayList = document.getElementById('comment-display-list');
+      const loadingMsg = document.getElementById('comment-loading-msg');
+      // const emptyMsg = document.getElementById('comment-empty-msg');
 
-    // 監聽 Astro 頁面轉場
-    document.addEventListener('astro:page-load', setupShareButtons);
+      if (!commentForm || !displayList || !WEB_APP_URL || !ARTICLE_SLUG) return;
+
+      // ----- 函式 2.1: 抓取並顯示留言 -----
+      async function fetchComments() {
+        if (loadingMsg) loadingMsg.style.display = 'block';
+        // if (emptyMsg) emptyMsg.style.display = 'none';
+        displayList.innerHTML = ''; // 清空舊留言 (除了 loading)
+        displayList.appendChild(loadingMsg);
+
+        try {
+          const response = await fetch(`${WEB_APP_URL}?slug=${ARTICLE_SLUG}`);
+          if (!response.ok) throw new Error('Network response was not ok');
+          
+          const result = await response.json();
+          
+          if (result.result === 'success' && result.data) {
+            displayList.innerHTML = ''; // 抓到了，清空 loading
+            
+            if (result.data.length === 0) {
+              // if (emptyMsg) emptyMsg.style.display = 'block';
+              displayList.innerHTML = '<p class="text-center text-[var(--text-secondary)]">還沒有人留言，快來搶頭香！</p>';
+            } else {
+              result.data.forEach(comment => {
+                const commentEl = document.createElement('div');
+                commentEl.className = 'flex space-x-4';
+                
+                // 格式化日期 (例如: 2025/11/15 下午3:30)
+                const formattedDate = new Date(comment.timestamp).toLocaleString('zh-TW', {
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true
+                });
+
+                commentEl.innerHTML = `
+                  <div class="flex-shrink-0">
+                    <div class="w-10 h-10 rounded-full bg-[var(--accent-color)] flex items-center justify-center text-white font-semibold text-lg">
+                      ${comment.name.charAt(0).toUpperCase()}
+                    </div>
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex items-baseline space-x-2">
+                      <span class="font-bold text-[var(--text-primary)]">${comment.name}</span>
+                      <span class="text-xs text-gray-500">${formattedDate}</span>
+                    </div>
+                    <p class="text-base text-[var(--text-secondary)] mt-2 whitespace-pre-line">${comment.content}</p>
+                  </div>
+                `;
+                displayList.appendChild(commentEl);
+              });
+            }
+          } else {
+            throw new Error(result.message || '無法解析資料');
+          }
+        } catch (err) {
+          console.error('抓取留言失敗:', err);
+          if (loadingMsg) loadingMsg.style.display = 'none';
+          displayList.innerHTML = '<p class="text-center text-red-500">無法載入留言...</p>';
+        }
+      }
+
+      // ----- 函式 2.2: 處理表單提交 -----
+      if (commentForm.dataset.listenerAttached !== 'true') {
+        commentForm.addEventListener('submit', async (e) => {
+          e.preventDefault(); // 阻止表單傳統提交
+          
+          submitButton.disabled = true;
+          submitButton.textContent = '送出中...';
+          if (successMsg) successMsg.style.display = 'none';
+          if (errorMsg) errorMsg.style.display = 'none';
+          
+          // 取得表單資料
+          const formData = new FormData(commentForm);
+          const data = {
+            name: formData.get('name') as string,
+            email: formData.get('email') as string,
+            content: formData.get('content') as string,
+            showOnSite: (formData.get('showOnSite') === 'on') ? true : false,
+            articleSlug: ARTICLE_SLUG
+          };
+          
+          try {
+            const response = await fetch(WEB_APP_URL, {
+              method: 'POST',
+              mode: 'cors',
+              cache: 'no-cache',
+              redirect: 'follow',
+              body: JSON.stringify(data),
+              headers: {
+                'Content-Type': 'text/plain;charset=utf-8', // Apps Script 的特例
+              }
+            });
+            
+            const result = await response.json();
+
+            if (result.result === 'success') {
+              if (successMsg) successMsg.style.display = 'inline';
+              commentForm.reset(); // 清空表單
+              
+              // 如果使用者同意公開，就立刻重新抓取留言
+              if (data.showOnSite) {
+                // 稍微延遲一下，給 Google Sheet 1秒鐘的時間更新
+                setTimeout(fetchComments, 1000); 
+              }
+            } else {
+              throw new Error(result.message || 'API 提交失敗');
+            }
+
+          } catch (err) {
+            console.error('提交留言失敗:', err);
+            if (errorMsg) errorMsg.style.display = 'inline';
+          } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = '送出留言';
+          }
+        });
+        commentForm.dataset.listenerAttached = 'true';
+      }
+
+      // ----- 函式 2.3: 頁面載入時，立刻抓取留言 -----
+      fetchComments();
+    }
+
+    // ---------------------------------
+    // 3. 綁定所有函式到頁面載入事件
+    // ---------------------------------
+    document.addEventListener('astro:page-load', () => {
+      setupShareButtons();
+      setupCommentSystem();
+    });
     // 也在頁面初次載入時執行
     setupShareButtons();
+    setupCommentSystem();
   </script>
 
 </BaseLayout>
