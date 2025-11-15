@@ -38,9 +38,9 @@ const { Content, headings } = await post.render();
 ---
 
 <BaseLayout
-  pageTitle={post.data.title}
-  description={post.data.description}
->
+  pageTitle={post.data.title}
+  description={post.data.description}
+  ogImage={post.data.heroImage} >
 
   <div class="max-w-3xl mx-auto">
 
