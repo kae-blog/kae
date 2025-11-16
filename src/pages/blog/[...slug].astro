@@ -35,6 +35,47 @@ type Props = {
 
 const { post, prevPost, nextPost } = Astro.props;
 const { Content, headings } = await post.render();
+// (新) 建立 Schema.org 結構化資料
+const siteUrl = Astro.site; // 取得 astro.config.mjs 中的 'site'
+
+// 1. 通用文章 Schema (所有文章都有)
+const blogPostingSchema = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": post.data.title,
+  "description": post.data.description,
+  // 必須是絕對路徑
+  "image": new URL(post.data.heroImage || '/images/og_default.png', siteUrl).href, 
+  "datePublished": post.data.publishDate.toISOString(),
+  "author": {
+    "@type": "Person",
+    "name": "かえ (KAE)" // 根據您的模板
+  }
+};
+
+// 2. 食譜 Schema (條件式)
+let recipeSchema = null;
+// 檢查 .md 檔案中是否有 isRecipe: true 且提供了材料和步驟
+if (post.data.isRecipe && post.data.recipeIngredients && post.data.recipeInstructions) {
+  recipeSchema = {
+    "@context": "https://schema.org/",
+    "@type": "Recipe",
+    "name": post.data.title,
+    "image": new URL(post.data.heroImage || '/images/og_default.png', siteUrl).href,
+    "description": post.data.description,
+    "author": {
+      "@type": "Person",
+      "name": "かえ (KAE)"
+    },
+    "datePublished": post.data.publishDate.toISOString(),
+    "recipeCategory": post.data.recipeCategory, // 來自 .md
+    "recipeIngredient": post.data.recipeIngredients, // 來自 .md
+    "recipeInstructions": post.data.recipeInstructions.map(step => ({ // 來自 .md
+      "@type": "HowToStep",
+      "text": step
+    })),
+  };
+}
 ---
 
 <BaseLayout
@@ -154,9 +195,12 @@ const { Content, headings } = await post.render();
           </span>
         </a>
       )}
-    </nav>
-  </div>
-
+</nav>
+  </div> <script type="application/ld+json" set:html={JSON.stringify(blogPostingSchema)} />
+  
+  {recipeSchema && (
+    <script type="application/ld+json" set:html={JSON.stringify(recipeSchema)} />
+  )}
   <script>
     // 建立一個函式來設定按鈕，這樣 astro:page-load 才能重複呼叫
     function setupShareButtons() {
