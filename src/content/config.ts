@@ -2,29 +2,25 @@
 
 import { defineCollection, z } from 'astro:content';
 
-// 1. 定義 'blog' 集合的結構
 const blogCollection = defineCollection({
-  // 結構 (Schema)
   schema: z.object({
     // --- 這是您原有的欄位 ---
     title: z.string(),
     description: z.string(),
-    publishDate: z.date(),
+    publishDate: z.date(), // 我們維持它是 date 型別
     category: z.array(z.string()),
+    previewImage: z.string(),
+    heroImage: z.string().optional(), // 這是你新增的欄位，設為選填
     tags: z.array(z.string()).optional(),
-    previewImage: z.string().optional(),
-    heroImage: z.string().optional(),
-    slug: z.string().optional(),
     
     // --- ▼▼▼ 請加入以下 4 個新欄位 (設為 optional) ▼▼▼ ---
     isRecipe: z.boolean().optional(),
     recipeCategory: z.string().optional(),
     recipeIngredients: z.array(z.string()).optional(),
     recipeInstructions: z.array(z.string()).optional(),
-  })
+  }),
 });
 
-// 2. 匯出集合
 export const collections = {
   'blog': blogCollection,
 };
