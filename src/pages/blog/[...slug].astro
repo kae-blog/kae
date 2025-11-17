@@ -65,10 +65,18 @@ if (post.data.isRecipe && post.data.recipeIngredients && post.data.recipeInstruc
     "description": post.data.description,
     "author": {
       "@type": "Person",
-      "name": "KAE"
+      "name": "KAE" // (您已修改)
     },
     "datePublished": post.data.publishDate.toISOString(),
+    
+    // --- ▼▼▼ 以下是新加入/修改的欄位 ▼▼▼ ---
+    "keywords": post.data.tags?.join(', ') || "", // (新) 自動抓取 tags
     "recipeCategory": post.data.recipeCategory, // 來自 .md
+    "prepTime": post.data.prepTime, // (新) 來自 .md (例如 "PT1H15M")
+    "cookTime": post.data.cookTime, // (新) 來自 .md (例如 "PT15M")
+    "recipeCuisine": post.data.recipeCuisine, // (新) 來自 .md (例如 "日式甜點")
+    // --- ▲▲▲ 新欄位結束 ▲▲▲ ---
+
     "recipeIngredient": post.data.recipeIngredients, // 來自 .md
     "recipeInstructions": post.data.recipeInstructions.map(step => ({ // 來自 .md
       "@type": "HowToStep",
