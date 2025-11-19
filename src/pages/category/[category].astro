@@ -12,7 +12,8 @@ const formatDate = (date: Date) => {
 
 // 1. 告訴 Astro 要產生哪些頁面
 export async function getStaticPaths() {
-  const allPosts = await getCollection('blog');
+  const allPosts = (await getCollection('blog'))
+    .filter(post => !post.data.draft); // 👈 新增：過濾掉草稿
   
   // 找出所有不重複的分類
   const allCategories = allPosts.flatMap(post => post.data.category);
@@ -28,7 +29,9 @@ export async function getStaticPaths() {
 const { category } = Astro.params;
 
 // 3. 取得「所有」文章 (用於篩選器) 和「已過濾」文章
-const allPosts = await getCollection('blog');
+const allPosts = (await getCollection('blog'))
+  .filter(post => !post.data.draft); // 👈 修正：先過濾掉草稿
+
 const filteredPosts = allPosts
   .filter(post => post.data.category.includes(category))
   .sort(
