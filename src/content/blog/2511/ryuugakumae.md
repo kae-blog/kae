@@ -38,6 +38,9 @@ tags: ['日本留學', '精選文章']
 
 # 自訂網址名稱
 slug: ryugakumae
+
+# 預設隱藏文章
+draft: true
 ---
 
 大家好！我是かえ（KAE）。
