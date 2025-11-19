@@ -12,8 +12,10 @@ const formatDate = (date: Date) => {
 
 // 1. 告訴 Astro 要產生哪些頁面
 export async function getStaticPaths() {
-  const allPosts = await getCollection('blog');
-  
+  const allPosts = (await getCollection('blog')).sort( // ✅ 修正：移除 .filter()，讓所有網址都被建置
+    (a, b) => new Date(a.data.publishDate).getTime() - new Date(b.data.publishDate).getTime()
+  );
+
   // 找出所有不重複的分類
   const allCategories = allPosts.flatMap(post => post.data.category);
   const uniqueCategories = [...new Set(allCategories)]; // Set 會自動過濾重複
