@@ -6,8 +6,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
 export async function getStaticPaths() {
   const allPosts = (await getCollection('blog'))
-    .filter(post => !post.data.draft) // 👈 新增：過濾掉所有 draft: true 的文章
-    .sort(
+    .sort(
     (a, b) => new Date(a.data.publishDate).getTime() - new Date(b.data.publishDate).getTime()
   );
 
