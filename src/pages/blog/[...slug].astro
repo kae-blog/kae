@@ -94,8 +94,17 @@ if (post.data.isRecipe && post.data.recipeIngredients && post.data.recipeInstruc
 <BaseLayout
   pageTitle={post.data.title}
   description={post.data.description}
-  ogImage={post.data.heroImage} >
-
+  ogImage={post.data.heroImage} 
+>
+    {post.data.draft ? (
+        // 如果是草稿，只顯示預覽提示
+        <div class="max-w-3xl mx-auto my-12 p-8 bg-yellow-100 border border-yellow-400 rounded-lg">
+            <h1 class="text-2xl text-red-600">⚠ 草稿模式預覽 ⚠</h1>
+            <p class="mt-4 text-gray-700">這篇文章被標記為草稿 (draft: true)，並不會公開顯示在列表頁面中。只有知道連結的人才能看到此預覽。</p>
+        </div>
+    ) : (
+        // 如果不是草稿，才顯示完整的文章內容
+        <>
   <div class="max-w-3xl mx-auto">
 
     <nav class="text-sm text-[var(--text-secondary)] mb-4">
