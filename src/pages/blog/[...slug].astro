@@ -152,36 +152,36 @@ if (post.data.isRecipe && post.data.recipeIngredients && post.data.recipeInstruc
                     <Content />
                 </div>
 
-                <footer class="mt-8 pt-6 border-t border-[var(--border-color)]">
-                    
-                    {post.data.tags && post.data.tags.length > 0 && (
-                        <div class="flex flex-wrap items-center gap-2">
-                            <span class="text-sm font-semibold text-[var(--text-secondary)]">Tags:</span>
-                            {post.data.tags.map(tag => (
-                              <span class="px-2 py-0.5 rounded-md text-gray-700 text-xs" style="background-color: #e7f0e2;">
-                                {tag}
-                              </span>
-                            ))}
-                        </div>
-                    )}
+        <footer class="mt-8 pt-6 border-t border-[var(--border-color)]">
+        
+        {post.data.tags && post.data.tags.length > 0 && (
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-sm font-semibold text-[var(--text-secondary)]">Tags:</span>
+            {post.data.tags.map(tag => (
+              <span class="px-2 py-0.5 rounded-md text-gray-700 text-xs" style="background-color: #e7f0e2;">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
 
-                    <div class={`flex flex-wrap gap-2 ${post.data.tags && post.data.tags.length > 0 ? 'mt-8' : ''}`}>
-                        
-                        <button 
-                          id="copy-link-btn" 
-                          class="text-sm font-medium text-white bg-[var(--accent-color)] py-1.5 px-3 rounded-full hover:bg-[var(--accent-hover)] transition-colors"
-                        >
-                          複製連結
-                        </button>
+        <div class={`flex flex-wrap gap-2 ${post.data.tags && post.data.tags.length > 0 ? 'mt-8' : ''}`}>
+          
+          <button 
+            id="copy-link-btn" 
+            class="text-sm font-medium text-white bg-[var(--accent-color)] py-1.5 px-3 rounded-full hover:bg-[var(--accent-hover)] transition-colors"
+          >
+            複製連結
+          </button>
 
-                        <button 
-                          id="native-share-btn" 
-                          class="hidden text-sm font-medium text-white bg-[var(--accent-color)] py-1.5 px-3 rounded-full hover:bg-[var(--accent-hover)] transition-colors"
-                        >
-                          分享此文
-                        </button>
-                    </div>
-                </footer>
+          <button 
+            id="native-share-btn" 
+            class="hidden text-sm font-medium text-white bg-[var(--accent-color)] py-1.5 px-3 rounded-full hover:bg-[var(--accent-hover)] transition-colors"
+          >
+            分享此文
+          </button>
+        </div>
+      </footer>
             </article>
 
             <nav class="mt-8 grid grid-cols-1 gap-4">
