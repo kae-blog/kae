@@ -37,8 +37,7 @@ heroImage: '/images/2511/ryuugakumae_1.png'
 tags: ['日本留學', '精選文章']
 
 # 自訂網址名稱
-slug: ryugakumae
-
+slug: ryuugakumae
 ---
 
 大家好！我是かえ（KAE）。
