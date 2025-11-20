@@ -49,7 +49,7 @@ slug: blogkeiken
 ## 階段一：從「視覺」出發的想像與困境
 
 一開始，我對技術一竅不通。我只知道我想要什麼：
-![想法到計劃](/images/2505/blog_keiken_03.png)
+![想法到計劃](/images/2511/blog_keiken_03.png)
 
 * **顏色：** 淡淡的綠色（決定下來後固定統一用 #e7f0e2）搭配乾淨的白色。
 * **風格：** 簡約、不要複雜的側邊欄。
@@ -59,7 +59,7 @@ slug: blogkeiken
 
 ![第一版初稿首頁排版](/images/2511/blog_keiken_01.png)
 
-![定案版本排版](/images/2505/blog_keiken_02.png)
+![定案版本排版](/images/2511/blog_keiken_02.png)
 
 那時候覺得：「哇！做出來了！」但隨即遇到一個大問題：難道我每發一篇文章，都要手動改 HTML 嗎？
 
@@ -73,7 +73,7 @@ slug: blogkeiken
 
 所以「我需要的不是一頁一頁的網頁，而是一個會自動產生網頁的系統。」
 
-![模板到專案](/images/2505/blog_keiken_04.png)
+![模板到專案](/images/2511/blog_keiken_04.png)
 
 
 ## 階段二：使用「自動化工廠」 Astro
@@ -89,8 +89,8 @@ slug: blogkeiken
 聽起來很完美，對吧？但實作起來全是坑......（淚）。
 
 
-![自動化設定](/images/2505/blog_keiken_05.png)
-![ai給的使用説明書](/images/2505/blog_keiken_06.png)
+![自動化設定](/images/2511/blog_keiken_05.png)
+![ai給的使用説明書](/images/2511/blog_keiken_06.png)
 
 ## 階段三：崩潰的踩坑紀錄 (Debugging)
 
@@ -101,7 +101,7 @@ slug: blogkeiken
 我說：「我想做搜尋器。」 AI 說：「沒問題！」 結果做出來的東西完全搜尋不到任何文章。
 經過反覆測試，最後改成「先讀取全部文章資料，再用 JavaScript 在前端比對（client-side search）」，才總算成功讓搜尋框運作。
 
-![網站中的搜尋器](/images/2505/blog_keiken_07.png)
+![網站中的搜尋器](/images/2511/blog_keiken_07.png)
 
 
 ### 2. 文字大小沒有設定好
@@ -121,9 +121,9 @@ slug: blogkeiken
 
 這需要讓程式根據不同情境抓取不同比例的圖片，也是一番折騰才搞定（大家可以分享這篇文章到 LINE 看看，圖片應該要是漂亮的長方形喔！）。
 
-![後台圖片資料庫](/images/2505/blog_keiken_08.png)
+![後台圖片資料庫](/images/2511/blog_keiken_08.png)
 
-![後台文章資料庫](/images/2505/blog_keiken_09.png)
+![後台文章資料庫](/images/2511/blog_keiken_09.png)
 ### 4. 恐怖的 "Build Failed" ❌
 
 最崩潰的時刻，莫過於看著 GitHub Actions 的燈號轉圈圈，最後跳出一個紅色的 Failed。 失敗原因常常是：
@@ -150,7 +150,7 @@ slug: blogkeiken
 
 點開網址，看到我寫的文章、我選的圖片、我設計的排版，全部自動且完美地呈現在螢幕上。那一刻的成就感真的難以言喻！
 
-![成功部署](/images/2505/blog_keiken_10.png)
+![成功部署](/images/2511/blog_keiken_10.png)
 
 ## 結語：我現在要怎麼上架文章
 
