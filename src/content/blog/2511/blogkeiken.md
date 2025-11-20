@@ -57,7 +57,7 @@ slug: blogkeiken
 
 我先試著請 Gemini 幫我構思，它用 HTML 寫出了一個「靜態頁面」的原型。
 
-![第一版初稿首頁排版](/images/2505/blog_keiken_01.png)
+![第一版初稿首頁排版](/images/2511/blog_keiken_01.png)
 
 ![定案版本排版](/images/2505/blog_keiken_02.png)
 
