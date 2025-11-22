@@ -48,8 +48,8 @@ body {
 .prose li { margin-top: 0.5rem; margin-bottom: 0.5rem; }
 .prose blockquote { border-left: 4px solid var(--accent-color); padding-left: 1rem; color: var(--text-secondary); font-style: italic; }
 
-/* 日文字體 */
-.prose [lang="ja"] {
+/* 日文字體 - 修正：移除 .prose 前綴，讓全站任何有 lang="ja" 的地方都生效 */
+[lang="ja"] {
   font-family: 'Noto Sans JP', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
 }
 
