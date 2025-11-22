@@ -1,14 +1,14 @@
-
 ---
 // src/pages/blog/[...slug].astro
 import { getCollection, type CollectionEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+// 1. 引入新元件
+import CommentSystem from '../../components/CommentSystem.astro';
 
 export async function getStaticPaths() {
-  const allPosts = (await getCollection('blog'))
-    .sort(
-    (a, b) => new Date(a.data.publishDate).getTime() - new Date(b.data.publishDate).getTime()
-  );
+  const allPosts = (await getCollection('blog')).sort(
+    (a, b) => new Date(a.data.publishDate).getTime() - new Date(b.data.publishDate).getTime()
+  );
 
   return allPosts.map((post, index) => {
     const prevPost = index > 0 ? {
@@ -36,53 +36,57 @@ type Props = {
 
 const { post, prevPost, nextPost } = Astro.props;
 const { Content, headings } = await post.render();
-// 建立 Schema.org 結構化資料
-const siteUrl = Astro.site; // 取得 astro.config.mjs 中的 'site'
+const siteUrl = Astro.site;
 
-// 👇👇👇 新增：Google 搜尋的圖片 (優先用 1:1 的 previewImage，達成您的目標)
+// Google 搜尋的圖片
 const googleSearchImage = new URL(post.data.previewImage || post.data.heroImage || '/images/og_default.png', siteUrl).href;
 
-// 1. 通用文章 Schema (所有文章都有)
-const blogPostingSchema = {
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": post.data.title,
-  "description": post.data.description,
-  // 必須是絕對路徑
-  "image": googleSearchImage, // 👈 修改：使用方形圖給 Google
-  "datePublished": post.data.publishDate.toISOString(),
-  "author": {
-    "@type": "Person",
-    "name": "KAE" 
-  }
+// 2. 定義 Google Apps Script 網址 (集中管理)
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxw-KeAWJtanPCNGpVyydYoeLrQqMUZ_lvOqegTmPi7CUZCDF-Fz4k37iJU6XilsDpZgg/exec";
+
+// 3. 定義「手動置頂留言」的資料 (這就是您要的 Props 選填控制)
+// 如果某篇文章不想顯示，您可以把這裡設為 null，或者針對特定 slug 做判斷
+const manualCommentData = {
+  name: "KAE (站長)",
+  date: "2025/11/15",
+  content: "歡迎留言！有任何問題都可以在這裡提出喔。",
+  avatarChar: "K"
 };
 
-// 2. 食譜 Schema (條件式)
+// Schema 定義 (保持不變)
+const blogPostingSchema = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": post.data.title,
+  "description": post.data.description,
+  "image": googleSearchImage,
+  "datePublished": post.data.publishDate.toISOString(),
+  "author": {
+    "@type": "Person",
+    "name": "KAE"
+  }
+};
+
 let recipeSchema = null;
-// 檢查 .md 檔案中是否有 isRecipe: true 且提供了材料和步驟
 if (post.data.isRecipe && post.data.recipeIngredients && post.data.recipeInstructions) {
-  recipeSchema = {
-    "@context": "https://schema.org/",
-    "@type": "Recipe",
-    "name": post.data.title,
-    "image": googleSearchImage, // 👈 修改：使用方形圖給 Google
-    "description": post.data.description,
+  recipeSchema = {
+    "@context": "https://schema.org/",
+    "@type": "Recipe",
+    "name": post.data.title,
+    "image": googleSearchImage,
+    "description": post.data.description,
     "author": {
       "@type": "Person",
-      "name": "KAE" // (您已修改)
+      "name": "KAE"
     },
     "datePublished": post.data.publishDate.toISOString(),
-    
-    // --- ▼▼▼ 以下是新加入/修改的欄位 ▼▼▼ ---
-    "keywords": post.data.tags?.join(', ') || "", // (新) 自動抓取 tags
-    "recipeCategory": post.data.recipeCategory, // 來自 .md
-    "prepTime": post.data.prepTime, // (新) 來自 .md (例如 "PT1H15M")
-    "cookTime": post.data.cookTime, // (新) 來自 .md (例如 "PT15M")
-    "recipeCuisine": post.data.recipeCuisine, // (新) 來自 .md (例如 "日式甜點")
-    // --- ▲▲▲ 新欄位結束 ▲▲▲ ---
-
-    "recipeIngredient": post.data.recipeIngredients, // 來自 .md
-    "recipeInstructions": post.data.recipeInstructions.map(step => ({ // 來自 .md
+    "keywords": post.data.tags?.join(', ') || "",
+    "recipeCategory": post.data.recipeCategory,
+    "prepTime": post.data.prepTime,
+    "cookTime": post.data.cookTime,
+    "recipeCuisine": post.data.recipeCuisine,
+    "recipeIngredient": post.data.recipeIngredients,
+    "recipeInstructions": post.data.recipeInstructions.map(step => ({
       "@type": "HowToStep",
       "text": step
     })),
@@ -91,81 +95,78 @@ if (post.data.isRecipe && post.data.recipeIngredients && post.data.recipeInstruc
 ---
 
 <BaseLayout
-  pageTitle={post.data.title}
-  description={post.data.description}
-  ogImage={post.data.heroImage} >
+  pageTitle={post.data.title}
+  description={post.data.description}
+  ogImage={post.data.heroImage}
+>
 
-        <div class="max-w-3xl mx-auto">
+  <div class="max-w-3xl mx-auto">
 
-        <nav class="text-sm text-[var(--text-secondary)] mb-4">
-            <a href="/archive" class="hover:text-[var(--accent-color)]">所有文章</a>
-            <span class="mx-2">&gt;</span>
-            <a href={`/category/${post.data.category[0]}`} class="hover:text-[var(--accent-color)]">
-                {post.data.category[0]}
-            </a>
-        </nav>
+    <nav class="text-sm text-[var(--text-secondary)] mb-4">
+      <a href="/archive" class="hover:text-[var(--accent-color)]">所有文章</a>
+      <span class="mx-2">&gt;</span>
+      <a href={`/category/${post.data.category[0]}`} class="hover:text-[var(--accent-color)]">
+        {post.data.category[0]}
+      </a>
+    </nav>
 
-        <article class="bg-[var(--bg-card)] rounded-xl shadow-lg p-8 md:p-12">
+    <article class="bg-[var(--bg-card)] rounded-xl shadow-lg p-8 md:p-12">
 
-            <header class="mb-8">
-                <div class="mb-4 flex flex-wrap gap-2">
-                    {post.data.category.map(cat => (
-                        <a
-                          href={`/category/${cat}`}
-                          class="text-sm font-medium text-white bg-[var(--accent-color)] py-1 px-3 rounded-full hover:bg-[var(--accent-hover)] transition-colors"
-                        >
-                          {cat}
-                        </a>
-                    ))}
-                    </div>
+      <header class="mb-8">
+        <div class="mb-4 flex flex-wrap gap-2">
+          {post.data.category.map(cat => (
+            <a
+              href={`/category/${cat}`}
+              class="text-sm font-medium text-white bg-[var(--accent-color)] py-1 px-3 rounded-full hover:bg-[var(--accent-hover)] transition-colors"
+            >
+              {cat}
+            </a>
+          ))}
+        </div>
 
-                    <h1 class="text-2xl md:text-3xl font-bold text-[var(--text-primary)] leading-tight mb-4 whitespace-pre-line">
-                        {post.data.title}
-                    </h1>
+        <h1 class="text-3xl md:text-4xl font-bold text-[var(--text-primary)] leading-tight mb-4 whitespace-pre-line">
+          {post.data.title}
+        </h1>
 
-                    <span class="text-base text-gray-500">
-                        {new Date(post.data.publishDate).toLocaleDateString('zh-TW')}・由 KAE 撰寫
-                    </span>
-                </header>
+        <span class="text-base text-gray-500">
+          {new Date(post.data.publishDate).toLocaleDateString('zh-TW')}・由 かえ (KAE) 撰寫
+        </span>
+      </header>
 
-                {headings.filter(h => h.depth === 2 || h.depth === 3).length > 0 && (
-                    <div class="bg-gray-100 p-6 rounded-lg mb-8 border border-[var(--border-color)]">
-                        <h2 class="text-xl font-bold text-[var(--text-primary)] mb-4">文章目次</h2>
-                        <ul class="space-y-2">
-                            {headings
-                              .filter(h => h.depth === 2 || h.depth === 3)
-                              .map(heading => (
-                                <li class={heading.depth === 3 ? 'ml-4' : ''}>
-                                  <a
-                                    href={`#${heading.slug}`}
-                                    class="text-[var(--text-secondary)] hover:text-[var(--accent-color)] transition-colors"
-                                  >
-                                    {heading.text}
-                                  </a>
-                                </li>
-                              ))}
-                        </ul>
-                    </div>
-                )}
+      {headings.filter(h => h.depth === 2 || h.depth === 3).length > 0 && (
+        <div class="bg-gray-100 p-6 rounded-lg mb-8 border border-[var(--border-color)]">
+          <h2 class="text-xl font-bold text-[var(--text-primary)] mb-4">文章目次</h2>
+          <ul class="space-y-2">
+            {headings
+              .filter(h => h.depth === 2 || h.depth === 3)
+              .map(heading => (
+                <li class={heading.depth === 3 ? 'ml-4' : ''}>
+                  <a
+                    href={`#${heading.slug}`}
+                    class="text-[var(--text-secondary)] hover:text-[var(--accent-color)] transition-colors"
+                  >
+                    {heading.text}
+                  </a>
+                </li>
+              ))}
+          </ul>
+        </div>
+      )}
 
-                <div class="prose max-w-none">
-                    <Content />
-                </div>
+      <div class="prose max-w-none">
+        <Content />
+      </div>
 
-        <footer class="mt-8 pt-6 border-t border-[var(--border-color)]">
+      <footer class="mt-8 pt-6 border-t border-[var(--border-color)]">
         
         {post.data.tags && post.data.tags.length > 0 && (
           <div class="flex flex-wrap items-center gap-2">
             <span class="text-sm font-semibold text-[var(--text-secondary)]">Tags:</span>
-{post.data.tags.map(tag => (
-  <a 
-    href={`/archive?q=${tag}`}
-    class="px-2 py-0.5 rounded-md text-gray-700 text-xs hover:opacity-75 transition-opacity" 
-    style="background-color: #e7f0e2;"
-  >
-    {tag}
-  </a>
-))}
+            {post.data.tags.map(tag => (
+              <span class="px-2 py-0.5 rounded-md text-gray-700 text-xs" style="background-color: #e7f0e2;">
+                {tag}
+              </span>
+            ))}
           </div>
         )}
 
@@ -186,57 +187,63 @@ if (post.data.isRecipe && post.data.recipeIngredients && post.data.recipeInstruc
           </button>
         </div>
       </footer>
-            </article>
+    </article>
 
-            <nav class="mt-8 grid grid-cols-1 gap-4">
-                {prevPost && (
-                    <a
-                      href={`/blog/${prevPost.slug}`}
-                      class="block bg-[var(--bg-card)] p-4 rounded-lg shadow-md hover:shadow-lg transition-all text-left"
-                    >
-                      <span class="text-sm text-gray-500">&larr; 上一篇文章</span>
-                      <span class="block text-base font-semibold text-[var(--accent-color)] mt-1">
-                        {prevPost.title}
-                      </span>
-                    </a>
-                  )}
-                  {nextPost && (
-                    <a
-                      href={`/blog/${nextPost.slug}`}
-                      class="block bg-[var(--bg-card)] p-4 rounded-lg shadow-md hover:shadow-lg transition-all text-left"
-                    >
-                      <span class="text-sm text-gray-500">下一篇文章 &rarr;</span>
-                      <span class="block text-base font-semibold text-[var(--accent-color)] mt-1">
-                        {nextPost.title}
-                      </span>
-                    </a>
-                  )}
-            </nav>
+    <CommentSystem 
+      articleSlug={post.slug} 
+      apiUrl={GOOGLE_SCRIPT_URL}
+      manualComment={manualCommentData} 
+    />
 
-        </div>
-    <script type="application/ld+json" set:html={JSON.stringify(blogPostingSchema)} />
-    {recipeSchema && (
-      <script type="application/ld+json" set:html={JSON.stringify(recipeSchema)} />
-    )}
+    <nav class="mt-8 grid grid-cols-1 gap-4">
+      {prevPost && (
+        <a
+          href={`/blog/${prevPost.slug}`}
+          class="block bg-[var(--bg-card)] p-4 rounded-lg shadow-md hover:shadow-lg transition-all text-left"
+        >
+          <span class="text-sm text-gray-500">&larr; 上一篇文章</span>
+          <span class="block text-base font-semibold text-[var(--accent-color)] mt-1">
+            {prevPost.title}
+          </span>
+        </a>
+      )}
+      {nextPost && (
+        <a
+          href={`/blog/${nextPost.slug}`}
+          class="block bg-[var(--bg-card)] p-4 rounded-lg shadow-md hover:shadow-lg transition-all text-left"
+        >
+          <span class="text-sm text-gray-500">下一篇文章 &rarr;</span>
+          <span class="block text-base font-semibold text-[var(--accent-color)] mt-1">
+            {nextPost.title}
+          </span>
+        </a>
+      )}
+    </nav>
+
+  </div>
+
+  <script type="application/ld+json" set:html={JSON.stringify(blogPostingSchema)} />
+  
+  {recipeSchema && (
+    <script type="application/ld+json" set:html={JSON.stringify(recipeSchema)} />
+  )}
+
   <script>
-    // 建立一個函式來設定按鈕，這樣 astro:page-load 才能重複呼叫
     function setupShareButtons() {
-      const copyButton = document.getElementById('copy-link-btn') as HTMLButtonElement;
-      const shareButton = document.getElementById('native-share-btn') as HTMLButtonElement;
+      const copyButton = document.getElementById('copy-link-btn');
+      const shareButton = document.getElementById('native-share-btn');
 
-      // --- 1. 原生分享 (Native Share) 按鈕邏輯 ---
       if (navigator.share && shareButton) {
-        // 如果瀏覽器支援 navigator.share，就顯示「分享此文」按鈕
         shareButton.classList.remove('hidden');
-        
-        // 加上點擊事件
         if (shareButton.dataset.listenerAttached !== 'true') {
           shareButton.addEventListener('click', async () => {
             try {
+              const descMeta = document.querySelector('meta[name="description"]');
+              const textContent = descMeta ? descMeta.getAttribute('content') : '';
               await navigator.share({
-                title: document.title, // 分享的標題 (自動抓取頁面標題)
-                text: document.querySelector('meta[name="description"]')?.getAttribute('content') || '', // 分享的描述 (自動抓取頁面描述)
-                url: window.location.href, // 分享的網址 (當前網址)
+                title: document.title,
+                text: textContent,
+                url: window.location.href,
               });
             } catch (err) {
               console.error('Error with native share: ', err);
@@ -246,7 +253,6 @@ if (post.data.isRecipe && post.data.recipeIngredients && post.data.recipeInstruc
         }
       }
 
-      // --- 2. 複製連結 (Copy Link) 按鈕邏輯 ---
       if (copyButton) {
         if (copyButton.dataset.listenerAttached !== 'true') {
           copyButton.addEventListener('click', () => {
@@ -254,11 +260,10 @@ if (post.data.isRecipe && post.data.recipeIngredients && post.data.recipeInstruc
               .then(() => {
                 const originalText = copyButton.textContent;
                 copyButton.textContent = '已複製！';
-                copyButton.disabled = true;
-                
+                copyButton.setAttribute('disabled', 'true');
                 setTimeout(() => {
                   copyButton.textContent = originalText;
-                  copyButton.disabled = false;
+                  copyButton.removeAttribute('disabled');
                 }, 2000);
               })
               .catch(err => {
@@ -271,9 +276,8 @@ if (post.data.isRecipe && post.data.recipeIngredients && post.data.recipeInstruc
       }
     }
 
-    // 監聽 Astro 頁面轉場
     document.addEventListener('astro:page-load', setupShareButtons);
-    // 也在頁面初次載入時執行
     setupShareButtons();
   </script>
+
 </BaseLayout>
