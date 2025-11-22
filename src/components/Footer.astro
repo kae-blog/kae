@@ -8,32 +8,32 @@ const formattedFooterBio = author.footerBio.replaceAll('\n', '<br />');
 <footer class="mt-12 border-t border-[var(--border-color)]">
         
     <!-- 
-      👇 修改重點：
-      將原本的 max-w-2xl 改成 max-w-3xl
-      這樣寬度就會跟您的文章內容 (Article) 一樣寬了
+      👇 修正重點：
+      我們將結構拆成兩層，模仿文章頁面的佈局：
+      1. 外層: container + px-6 (負責響應式邊距)
+      2. 內層: max-w-3xl (負責限制最大寬度)
+      這樣卡片的寬度就會跟上面的文章內容完全一致 (不會被 px-6 吃掉寬度)
     -->
-    <div class="container mx-auto px-6 max-w-3xl py-10">
-        <div class="bg-[var(--bg-card)] rounded-xl shadow-md flex items-center p-4">
-            <div class="flex-shrink-0">
-                <img src={author.avatar} alt={author.name} class="w-16 h-16 rounded-full">
-            </div>
-            <div class="ml-4 flex-1">
-                
-                <!-- 
-                   👇 修改這裡：
-                   原本是 {author.name} (會顯示 KAE)
-                   改成直接寫死文字 "作者簡介"
-                -->
-                <h4 class="text-base font-bold text-[var(--text-primary)]">作者簡介</h4>
-                
-                <p 
-                  class="text-sm text-[var(--text-secondary)]"
-                  set:html={formattedFooterBio}
-                ></p>
+    <div class="container mx-auto px-6 py-10">
+        <div class="max-w-3xl mx-auto">
+            <div class="bg-[var(--bg-card)] rounded-xl shadow-md flex items-center p-4">
+                <div class="flex-shrink-0">
+                    <img src={author.avatar} alt={author.name} class="w-16 h-16 rounded-full">
+                </div>
+                <div class="ml-4 flex-1">
+                    
+                    <!-- 標題維持 "作者簡介" -->
+                    <h4 class="text-base font-bold text-[var(--text-primary)]">作者簡介</h4>
+                    
+                    <p 
+                      class="text-sm text-[var(--text-secondary)]"
+                      set:html={formattedFooterBio}
+                    ></p>
 
-                <a href="/about" class="text-sm font-semibold text-[var(--accent-color)] hover:text-[var(--accent-hover)] transition-colors mt-1 inline-block">
-                    閱讀更多 &rarr;
-                </a>
+                    <a href="/about" class="text-sm font-semibold text-[var(--accent-color)] hover:text-[var(--accent-hover)] transition-colors mt-1 inline-block">
+                        閱讀更多 &rarr;
+                    </a>
+                </div>
             </div>
         </div>
     </div>
