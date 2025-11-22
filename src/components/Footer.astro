@@ -7,30 +7,38 @@ const formattedFooterBio = author.footerBio.replaceAll('\n', '<br />');
 ---
 <footer class="mt-12 border-t border-[var(--border-color)]">
         
-    <!-- 
-      👇 修正重點：
-      我們將結構拆成兩層，模仿文章頁面的佈局：
-      1. 外層: container + px-6 (負責響應式邊距)
-      2. 內層: max-w-3xl (負責限制最大寬度)
-      這樣卡片的寬度就會跟上面的文章內容完全一致 (不會被 px-6 吃掉寬度)
-    -->
     <div class="container mx-auto px-6 py-10">
         <div class="max-w-3xl mx-auto">
-            <div class="bg-[var(--bg-card)] rounded-xl shadow-md flex items-center p-4">
+            <!-- 
+              👇 修改重點：
+              1. justify-center: 讓內容整體置中
+              2. flex-col md:flex-row: 手機版垂直堆疊，電腦版水平並排
+              3. gap-6: 使用 gap 來控制圖片與文字的距離 (取代原本的 ml-4)
+              4. p-8: 增加一點內距，讓卡片看起來更大方
+            -->
+            <div class="bg-[var(--bg-card)] rounded-xl shadow-md flex flex-col md:flex-row items-center justify-center p-8 gap-6">
+                
+                <!-- 頭像區 -->
                 <div class="flex-shrink-0">
-                    <img src={author.avatar} alt={author.name} class="w-16 h-16 rounded-full">
+                    <!-- 我稍微加大了頭像 (w-20)，讓置中版面更平衡 -->
+                    <img src={author.avatar} alt={author.name} class="w-20 h-20 rounded-full object-cover border-2 border-white shadow-sm">
                 </div>
-                <div class="ml-4 flex-1">
-                    
-                    <!-- 標題維持 "作者簡介" -->
-                    <h4 class="text-base font-bold text-[var(--text-primary)]">作者簡介</h4>
+
+                <!-- 
+                   文字區 
+                   1. 移除 flex-1 (關鍵！這樣才不會被拉伸到最左邊)
+                   2. text-center md:text-left (手機置中，電腦靠左)
+                   3. max-w-lg (限制文字最大寬度，避免太長時閱讀困難)
+                -->
+                <div class="text-center md:text-left max-w-lg">
+                    <h4 class="text-base font-bold text-[var(--text-primary)] mb-2">作者簡介</h4>
                     
                     <p 
-                      class="text-sm text-[var(--text-secondary)]"
+                      class="text-sm text-[var(--text-secondary)] mb-3 leading-relaxed"
                       set:html={formattedFooterBio}
                     ></p>
 
-                    <a href="/about" class="text-sm font-semibold text-[var(--accent-color)] hover:text-[var(--accent-hover)] transition-colors mt-1 inline-block">
+                    <a href="/about" class="text-sm font-semibold text-[var(--accent-color)] hover:text-[var(--accent-hover)] transition-colors inline-block">
                         閱讀更多 &rarr;
                     </a>
                 </div>
