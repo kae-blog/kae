@@ -159,13 +159,17 @@ if (post.data.isRecipe && post.data.recipeIngredients && post.data.recipeInstruc
 
       <footer class="mt-8 pt-6 border-t border-[var(--border-color)]">
         
-        {post.data.tags && post.data.tags.length > 0 && (
+{post.data.tags && post.data.tags.length > 0 && (
           <div class="flex flex-wrap items-center gap-2">
             <span class="text-sm font-semibold text-[var(--text-secondary)]">Tags:</span>
             {post.data.tags.map(tag => (
-              <span class="px-2 py-0.5 rounded-md text-gray-700 text-xs" style="background-color: #e7f0e2;">
+              <a 
+                href={`/archive?q=${encodeURIComponent(tag)}`}
+                class="px-2 py-0.5 rounded-md text-gray-700 text-xs bg-[#e7f0e2] hover:bg-[var(--accent-color)] hover:text-white transition-colors cursor-pointer"
+                style="text-decoration: none;"
+              >
                 {tag}
-              </span>
+              </a>
             ))}
           </div>
         )}
