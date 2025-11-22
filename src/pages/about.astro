@@ -35,9 +35,15 @@ const formattedBio = author.fullBio.replaceAll('\n', '<br />');
           <h1 class="text-4xl font-bold text-[var(--text-primary)] mb-3">
             {author.name}
           </h1>
-          <p class="text-lg text-[var(--text-secondary)] font-medium">
-            {author.tagline}
-          </p>
+<!-- 
+  修正：
+  1. 移除 lang="ja"
+  2. 改用 set:html，這樣如果 JSON 裡有 <span> 標籤才不會被當成文字印出來
+-->
+<p 
+  class="text-lg text-[var(--text-secondary)] font-medium" 
+  set:html={author.tagline}
+/>
         </div>
       </div>
 
