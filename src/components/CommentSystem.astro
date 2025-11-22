@@ -1,0 +1,207 @@
+---
+// 檔案路徑: src/components/CommentSystem.astro
+interface Props {
+  articleSlug: string;
+  apiUrl: string;
+  // 選填的置頂留言資料結構
+  manualComment?: {
+    name: string;
+    date: string;
+    content: string;
+    avatarChar?: string; // 頭像字母，預設 'K'
+  };
+}
+
+const { articleSlug, apiUrl, manualComment } = Astro.props;
+---
+
+<div 
+  id="comment-system-root"
+  class="mt-12 bg-[var(--bg-card)] rounded-xl shadow-lg p-8 md:p-12"
+  data-api-url={apiUrl}
+  data-article-slug={articleSlug}
+>
+  <h3 class="text-2xl font-bold text-[var(--text-primary)] mb-6">訪客留言</h3>
+  
+  <form id="comment-form" class="space-y-4 mb-10">
+    <div>
+      <label for="comment-name" class="block text-sm font-semibold text-[var(--text-secondary)] mb-2">您的名稱 (必填)</label>
+      <input type="text" id="comment-name" name="name" required class="w-full px-3 py-2 rounded-md border border-[var(--border-color)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]" />
+    </div>
+    <div>
+      <label for="comment-email" class="block text-sm font-semibold text-[var(--text-secondary)] mb-2">您的 Email (選填，不會公開)</label>
+      <input type="email" id="comment-email" name="email" class="w-full px-3 py-2 rounded-md border border-[var(--border-color)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]" />
+    </div>
+    <div>
+      <label for="comment-content" class="block text-sm font-semibold text-[var(--text-secondary)] mb-2">您的留言 (必填)</label>
+      <textarea id="comment-content" name="content" rows="4" required class="w-full px-3 py-2 rounded-md border border-[var(--border-color)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"></textarea>
+    </div>
+    
+    <div class="flex items-center">
+      <input type="checkbox" id="comment-showOnSite" name="showOnSite" checked class="h-4 w-4 text-[var(--accent-color)] border-[var(--border-color)] rounded focus:ring-[var(--accent-color)]" />
+      <label for="comment-showOnSite" class="ml-2 block text-sm text-[var(--text-secondary)]">我同意將此留言（名稱與內容）公開顯示</label>
+    </div>
+
+    <div class="pt-2">
+      <button type="submit" id="comment-submit-btn" class="px-5 py-2 bg-[var(--accent-color)] text-white text-base font-medium rounded-md hover:bg-[var(--accent-hover)] transition disabled:opacity-50 disabled:cursor-not-allowed">
+        送出留言
+      </button>
+      <span id="comment-status-msg" class="hidden ml-4 font-semibold"></span>
+    </div>
+  </form>
+
+  <div class="space-y-6 border-t border-[var(--border-color)] pt-10">
+    
+    {manualComment && (
+      <div class="flex space-x-4">
+        <div class="flex-shrink-0">
+          <div class="w-10 h-10 rounded-full bg-[var(--accent-color)] flex items-center justify-center text-white font-semibold text-lg">
+            {manualComment.avatarChar || 'K'}
+          </div>
+        </div>
+        <div class="flex-1">
+          <div class="flex items-baseline space-x-2">
+            <span class="font-bold text-[var(--text-primary)]">{manualComment.name}</span>
+            <span class="text-xs text-gray-500">{manualComment.date}</span>
+          </div>
+          <p class="text-base text-[var(--text-secondary)] mt-2 whitespace-pre-line">{manualComment.content}</p> 
+        </div>
+      </div>
+    )}
+
+    <div id="dynamic-comments-container" class="space-y-6">
+      <p class="text-center text-[var(--text-secondary)]">留言載入中...</p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // 定義初始化函式
+  function initCommentSystem() {
+    const root = document.getElementById('comment-system-root');
+    if (!root) return;
+
+    const API_URL = root.dataset.apiUrl;
+    const SLUG = root.dataset.articleSlug;
+    const form = document.getElementById('comment-form') as HTMLFormElement;
+    const submitBtn = document.getElementById('comment-submit-btn') as HTMLButtonElement;
+    const statusMsg = document.getElementById('comment-status-msg');
+    const listContainer = document.getElementById('dynamic-comments-container');
+
+    if (!API_URL || !SLUG || !form || !listContainer) return;
+
+    // --- 功能 A: 抓取留言 (清空重繪策略) ---
+    async function fetchComments() {
+      // 1. 設定載入狀態 (不影響置頂留言)
+      listContainer.innerHTML = '<p class="text-center text-[var(--text-secondary)]">留言載入中...</p>';
+
+      try {
+        const res = await fetch(`${API_URL}?slug=${SLUG}`);
+        const json = await res.json();
+
+        if (json.result === 'success' && json.data) {
+          // 2. 清空容器 (徹底避免重複)
+          listContainer.innerHTML = '';
+
+          if (json.data.length === 0) {
+             // 如果沒有動態留言，顯示提示 (這裡不影響置頂留言)
+             // 若有置頂留言，這裡留白也可以，或者顯示「尚無訪客留言」
+             // 這裡我們選擇若無訪客留言則不顯示任何訊息，保持版面乾淨
+          } else {
+            // 3. 重繪所有留言
+            json.data.forEach((comment: any) => {
+              const dateStr = new Date(comment.timestamp).toLocaleString('zh-TW', {
+                  year: 'numeric', month: '2-digit', day: '2-digit',
+                  hour: 'numeric', minute: '2-digit', hour12: true
+              });
+              
+              const div = document.createElement('div');
+              div.className = 'flex space-x-4 animate-fade-in'; // 可加個淡入動畫 class 若有設定
+              div.innerHTML = `
+                <div class="flex-shrink-0">
+                  <div class="w-10 h-10 rounded-full bg-[var(--accent-color)] flex items-center justify-center text-white font-semibold text-lg">
+                    ${comment.name.charAt(0).toUpperCase()}
+                  </div>
+                </div>
+                <div class="flex-1">
+                  <div class="flex items-baseline space-x-2">
+                    <span class="font-bold text-[var(--text-primary)]">${comment.name}</span>
+                    <span class="text-xs text-gray-500">${dateStr}</span>
+                  </div>
+                  <p class="text-base text-[var(--text-secondary)] mt-2 whitespace-pre-line">${comment.content}</p>
+                </div>
+              `;
+              listContainer.appendChild(div);
+            });
+          }
+        }
+      } catch (e) {
+        console.error(e);
+        listContainer.innerHTML = '<p class="text-center text-red-500">無法載入留言。</p>';
+      }
+    }
+
+    // --- 功能 B: 提交表單 (按鈕鎖定策略) ---
+    if (form.dataset.bound !== 'true') {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // 1. 鎖定按鈕
+        submitBtn.disabled = true;
+        submitBtn.textContent = '處理中...';
+        if (statusMsg) statusMsg.style.display = 'none';
+
+        const formData = new FormData(form);
+        const payload = {
+          name: formData.get('name'),
+          email: formData.get('email'),
+          content: formData.get('content'),
+          showOnSite: formData.get('showOnSite') === 'on',
+          articleSlug: SLUG
+        };
+
+        try {
+          const res = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+          });
+          const json = await res.json();
+
+          if (json.result === 'success') {
+            // 2. 成功狀態
+            form.reset();
+            if (statusMsg) {
+              statusMsg.textContent = '✓ 留言已送出！等待更新中...';
+              statusMsg.className = 'ml-4 font-semibold text-green-600';
+              statusMsg.style.display = 'inline';
+            }
+            // 延遲重新抓取 (避免 Google Sheet 寫入延遲)
+            setTimeout(fetchComments, 1500);
+          } else {
+            throw new Error(json.message);
+          }
+        } catch (err) {
+          // 3. 失敗狀態
+          if (statusMsg) {
+            statusMsg.textContent = '✗ 送出失敗，請稍後再試。';
+            statusMsg.className = 'ml-4 font-semibold text-red-600';
+            statusMsg.style.display = 'inline';
+          }
+        } finally {
+          // 4. 解鎖按鈕 (無論成功失敗)
+          submitBtn.disabled = false;
+          submitBtn.textContent = '送出留言';
+        }
+      });
+      form.dataset.bound = 'true';
+    }
+
+    // 頁面載入時執行抓取
+    fetchComments();
+  }
+
+  // 綁定 Astro 頁面切換事件
+  document.addEventListener('astro:page-load', initCommentSystem);
+</script>
