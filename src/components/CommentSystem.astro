@@ -8,7 +8,8 @@ interface Props {
     name: string;
     date: string;
     content: string;
-    avatarChar?: string; // 頭像字母，預設 'K'
+    avatarChar?: string; // 舊的 (備用)
+    avatarSrc?: string;  // 👈 新增：圖片路徑
   };
 }
 
@@ -54,11 +55,19 @@ const { articleSlug, apiUrl, manualComment } = Astro.props;
     
     {manualComment && (
       <div class="flex space-x-4">
-        <div class="flex-shrink-0">
-          <div class="w-10 h-10 rounded-full bg-[var(--accent-color)] flex items-center justify-center text-white font-semibold text-lg">
-            {manualComment.avatarChar || 'K'}
-          </div>
-        </div>
+<div class="flex-shrink-0">
+  {manualComment.avatarSrc ? (
+    <img 
+      src={manualComment.avatarSrc} 
+      alt={manualComment.name} 
+      class="w-10 h-10 rounded-full object-cover border border-[var(--border-color)]" 
+    />
+  ) : (
+    <div class="w-10 h-10 rounded-full bg-[var(--accent-color)] flex items-center justify-center text-white font-semibold text-lg">
+      {manualComment.avatarChar || 'K'}
+    </div>
+  )}
+</div>
         <div class="flex-1">
           <div class="flex items-baseline space-x-2">
             <span class="font-bold text-[var(--text-primary)]">{manualComment.name}</span>
@@ -174,7 +183,7 @@ const { articleSlug, apiUrl, manualComment } = Astro.props;
             form.reset();
             if (statusMsg) {
               statusMsg.textContent = '✓ 留言已送出！等待更新中...';
-              statusMsg.className = 'ml-4 font-semibold text-green-600';
+              statusMsg.className = 'ml-4 font-semibold text-[#698a6a]';
               statusMsg.style.display = 'inline';
             }
             // 延遲重新抓取 (避免 Google Sheet 寫入延遲)
