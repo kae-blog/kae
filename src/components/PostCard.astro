@@ -1,0 +1,96 @@
+---
+// src/components/PostCard.astro
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+
+const formatDate = (date: Date) => {
+  const d = new Date(date);
+  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+};
+---
+
+<!-- 方形卡片元件 -->
+<article class="bg-[var(--bg-card)] rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden h-full flex flex-col group">
+  
+  <!-- 1. 圖片區 -->
+  <div class="w-full aspect-video overflow-hidden relative">
+    <a href={`/blog/${post.slug}`} class="block w-full h-full">
+      <img 
+        src={post.data.heroImage || post.data.previewImage} 
+        alt={post.data.title} 
+        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+      />
+    </a>
+  </div>
+
+  <!-- 2. 內容區 -->
+  <div class="p-4 flex flex-col flex-grow">
+    
+    <!-- 
+       ★ 修改重點 A：日期移到上方 
+       flex justify-between: 讓分類靠左，日期靠右
+    -->
+    <div class="flex justify-between items-start mb-3">
+        <!-- 左邊：分類 -->
+        <div class="flex flex-wrap gap-1">
+            {post.data.category.map(cat => (
+                <a href={`/category/${cat}`} class="text-xs font-medium text-white bg-[var(--accent-color)] py-1 px-2 rounded-full hover:bg-[var(--accent-hover)] transition-colors">
+                {cat}
+                </a>
+            ))}
+        </div>
+        <!-- 右邊：日期 (文字灰色，變小) -->
+        <span class="text-xs text-gray-400 flex-shrink-0 mt-1 ml-2">
+            {formatDate(post.data.publishDate)}
+        </span>
+    </div>
+
+    <!-- 標題 -->
+    <h3 class="text-lg font-bold text-[var(--text-primary)] mb-2 line-clamp-2">
+      <a href={`/blog/${post.slug}`} class="hover:text-[var(--accent-color)] transition-colors">
+        {post.data.title}
+      </a>
+    </h3>
+
+    <!-- 摘要 -->
+    <p class="text-sm text-[var(--text-secondary)] line-clamp-3 mb-4 flex-grow">
+      {post.data.description}
+    </p>
+
+    <!-- 
+       ★ 修改重點 B：底部區域 (Tags + 閱讀更多) 
+       pt-3 border-t: 加上頂部線條區隔
+    -->
+    <div class="flex items-center justify-between pt-3 border-t border-[var(--border-color)] gap-4">
+      
+        <!-- 
+           ★ 修改重點 C：Tags 自動截斷邏輯 
+           1. flex-1: 佔據左邊所有空間
+           2. h-6: 強制固定高度 (只顯示一行)
+           3. overflow-hidden: 超出一行的 Tag 自動隱藏
+           4. flex-wrap: 允許換行 (但換行後會被 hidden 遮住)
+        -->
+        <div class="flex-1 flex flex-wrap gap-2 h-6 overflow-hidden content-start">
+            {post.data.tags?.map(tag => (
+                <a 
+                  href={`/archive?q=${encodeURIComponent(tag)}`}
+                  class="text-xs text-gray-500 hover:text-[var(--accent-color)] hover:underline transition-colors whitespace-nowrap"
+                >
+                  #{tag}
+                </a>
+            ))}
+        </div>
+
+        <!-- 閱讀更多 (靠右) -->
+        <a href={`/blog/${post.slug}`} class="text-sm font-semibold text-[var(--accent-color)] hover:underline flex-shrink-0 ml-auto">
+            閱讀 &rarr;
+        </a>
+    </div>
+
+  </div>
+</article>
