@@ -53,7 +53,7 @@ const formatDate = (date: Date) => {
     <!-- 
        ★ 底部資訊區 (日期 + Tags + 閱讀按鈕)
     -->
-    <div class="flex items-center justify-between text-xs text-gray-500 gap-3 h-6 overflow-hidden"> <!-- 加入 h-6 overflow-hidden 保護整個底部不被撐開 -->
+    <div class="flex items-center justify-between text-xs text-gray-500 gap-3 h-6 overflow-hidden">
       
       <!-- 左邊群組：日期 + Tags -->
       <div class="flex items-center gap-2 flex-1 min-w-0">
@@ -62,26 +62,24 @@ const formatDate = (date: Date) => {
         <span class="flex-shrink-0 whitespace-nowrap">{formatDate(post.data.publishDate)}</span>
         
         <!-- 
-           ★ 修改重點：Tags 容器
-           1. flex-wrap: 允許 Tag 換行 (關鍵！)
-           2. h-6: 固定高度，只顯示一行 (約 24px，足夠容納 text-xs 的 tag)
-           3. overflow-hidden: 超出第一行的 Tag 會被隱藏
-           4. content-center: 讓內容垂直置中
+           ★ Tags 容器 (已修正為純文字，自動換行並隱藏第二行)
         -->
-        <div class="flex flex-wrap gap-1 h-6 overflow-hidden content-center">
+        <div class="flex flex-wrap gap-x-2 overflow-hidden h-6 items-center">
           {post.data.tags?.map(tag => (
+            <!-- 修正點 1: 移除背景和 Padding -->
+            <!-- 修正點 2: 使用 text-gray-500 (灰色) 且前面加上 # 號 -->
             <a 
               href={`/archive?q=${encodeURIComponent(tag)}`}
-              class="px-2 py-0.5 rounded-md text-gray-700 bg-[#e7f0e2] hover:bg-[var(--accent-color)] hover:text-white transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
+              class="text-xs text-gray-500 hover:text-[var(--accent-color)] hover:underline transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
             >
-              {tag}
+              #{tag}
             </a>
           ))}
         </div>
       </div>
 
       <!-- 右邊按鈕：閱讀更多 (靠右) -->
-      <a href={`/blog/${post.slug}`} class="text-[var(--accent-color)] hover:underline ml-auto flex-shrink-0 self-center">
+      <a href={`/blog/${post.slug}`} class="text-[var(--accent-color)] hover:underline ml-auto flex-shrink-0">
         閱讀 &rarr;
       </a>
 
