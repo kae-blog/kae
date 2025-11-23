@@ -1,8 +1,9 @@
 ---
-// 檔案路徑: src/pages/category/[category].astro
+// 檔案路徑: src/pages/category/[category].astro (應用 SearchFilterBox 元件)
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Sidebar from '../../components/Sidebar.astro';
-// 👇 1. 引入方形卡片元件
+// 👇 1. 引入新元件
+import SearchFilterBox from '../../components/SearchFilterBox.astro'; 
 import PostCard from '../../components/PostCard.astro';
 import { getCollection } from 'astro:content';
 
@@ -32,7 +33,6 @@ export async function getStaticPaths() {
 const { category } = Astro.params;
 
 // 3. 取得「所有」文章 (用於篩選器) 和「已過濾」文章
-// (這裡有過濾 draft，所以列表不會顯示草稿)
 const allPosts = (await getCollection('blog'))
   .filter(post => !post.data.draft); 
 
@@ -42,7 +42,7 @@ const filteredPosts = allPosts
     (a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime()
   );
 
-// 4. 取得所有分類，為了產生篩選按鈕
+// 4. 取得所有分類，為了產生篩選按鈕 (這裡用不到，但保留了)
 const allCategories = allPosts.flatMap(post => post.data.category);
 const uniqueCategories = [...new Set(allCategories)].filter(Boolean);
 
@@ -56,34 +56,16 @@ const pageTitle = `分類：${category}`;
             分類：{category} ({filteredPosts.length})
         </h2>
 
-        <!-- 搜尋/篩選器區塊 (保持不變) -->
-        <div class="mb-8 p-4 bg-[var(--bg-card)] rounded-lg shadow-md">
-          <div class="mb-4">
-            <input type="search" id="search-input" placeholder="在此頁面中搜尋..." class="w-full px-3 py-2 rounded-md border border-[var(--border-color)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]">
-          </div>
-          <div class="flex flex-wrap gap-2">
-            <button data-category-filter="all" class="category-filter-btn active text-xs font-medium text-white bg-[var(--accent-color)] py-1 px-3 rounded-full hover:bg-[var(--accent-hover)] transition-colors">全部</button>
-            
-            {uniqueCategories.map(cat => (
-              <button 
-                data-category-filter={cat} 
-                class="category-filter-btn text-xs font-medium text-[var(--text-secondary)] bg-gray-100 py-1 px-3 rounded-full hover:bg-gray-200 transition-colors">
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-        
+        <!-- 
+           👇 2. 替換舊的搜尋/篩選區塊
+           傳入當前分類 {category} 讓該按鈕高亮
+        -->
+        <SearchFilterBox currentCategory={category} />
+
         <div id="no-results-message" class="hidden text-center text-gray-500 py-10">
           <p>找不到符合條件的文章 😅</p>
         </div>
 
-        <!-- 
-           👇 修改重點：文章列表容器
-           1. 使用 grid grid-cols-1 md:grid-cols-2 (電腦版雙欄)
-           2. 使用 <PostCard /> 取代原本的 HTML
-           3. 外層加上 wrapper 供搜尋 script 控制顯示/隱藏
-        -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="article-list-container">
           {filteredPosts.map(post => (
             <div 
@@ -111,103 +93,59 @@ const pageTitle = `分類：${category}`;
   // 讓 <head> 中的 ViewTransitions API 知道這個頁面有動態內容
   document.addEventListener('astro:page-load', () => {
     
+    // 這是給 PostCardBox 裡面的腳本使用的，讓它知道要抓哪幾個 DOM 元素
     const searchInput = document.getElementById('search-input');
-    const articleListContainer = document.getElementById('article-list-container');
-    // 👇 修改：選擇器改抓 .article-card-wrapper (因為 PostCard 被包在裡面)
-    const articleWrappers = articleListContainer?.querySelectorAll('.article-card-wrapper');
+    const articleWrappers = document.querySelectorAll('.article-card-wrapper');
     const noResultsMessage = document.getElementById('no-results-message');
-    const categoryButtons = document.querySelectorAll('.category-filter-btn');
 
-    // ----- 
-    // 邏輯：檢查當前 URL，自動點擊對應的分類按鈕
-    // ----- 
-    try {
-      const currentCategory = (document.querySelector('h2.text-2xl') as HTMLElement)?.innerText.split('分類：')[1].split(' (')[0].trim();
+    if (!searchInput || !articleWrappers || !noResultsMessage) return;
 
-      if (currentCategory && currentCategory !== "undefined") {
-        // 2. 移除 "全部" 按鈕的 active 狀態
-        const allButton = document.querySelector('.category-filter-btn[data-category-filter="all"]');
-        allButton?.classList.remove('active', 'text-white', 'bg-[var(--accent-color)]');
-        allButton?.classList.add('text-[var(--text-secondary)]', 'bg-gray-100');
-        
-        // 3. 找到對應的分類按鈕並設為 active
-        const activeButton = document.querySelector(`.category-filter-btn[data-category-filter="${currentCategory}"]`);
-        if (activeButton) {
-          activeButton.classList.add('active', 'text-white', 'bg-[var(--accent-color)]');
-          activeButton.classList.remove('text-[var(--text-secondary)]', 'bg-gray-100');
-        }
-      }
-    } catch (e) {
-      console.error('Error auto-selecting category:', e);
+    let currentSearch = '';
+    
+    // 讀取 URL 參數 (來自頁首的搜尋)
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryFromUrl = urlParams.get('q');
+
+    if (queryFromUrl) {
+      (searchInput as HTMLInputElement).value = queryFromUrl;
+      currentSearch = queryFromUrl.toLowerCase().trim();
     }
 
-
-    // ----- 
-    // 篩選主函式
-    // ----- 
-    function filterArticles() {
-      const searchTerm = (searchInput as HTMLInputElement).value.toLowerCase().trim();
-      
-      // 找到當前 "active" 的分類按鈕
-      const activeCategoryBtn = document.querySelector('.category-filter-btn.active');
-      const activeCategory = activeCategoryBtn?.getAttribute('data-category-filter') || 'all';
-
-      let hasVisibleArticles = false;
+    function runSearchFilter() {
+      let visibleCount = 0;
+      const searchTerm = currentSearch; 
 
       if (articleWrappers) {
         articleWrappers.forEach(wrapper => {
           const el = wrapper as HTMLElement;
           const searchText = el.dataset.searchText || '';
-          const categories = el.dataset.category || '';
           
-          // 條件1: 搜尋文字
+          // 條件: 搜尋文字
           const matchesSearch = searchTerm === '' || searchText.includes(searchTerm);
           
-          // 條件2: 分類
-          const matchesCategory = activeCategory === 'all' || categories.includes(activeCategory);
-
-          if (matchesSearch && matchesCategory) {
-            el.style.display = 'block'; // 顯示
-            hasVisibleArticles = true;
+          // 修正：因為這個是分類頁，內容本身已經被過濾過了，所以我們只需要搜尋
+          if (matchesSearch) {
+            el.style.display = 'block'; 
+            visibleCount++;
           } else {
-            el.style.display = 'none'; // 隱藏
+            el.style.display = 'none';
           }
         });
       }
 
-      // 顯示/隱藏 "無結果" 訊息
       if (noResultsMessage) {
-        noResultsMessage.style.display = hasVisibleArticles ? 'none' : 'block';
+        noResultsMessage.style.display = visibleCount === 0 ? 'block' : 'none';
       }
     }
 
-    // ----- 
-    // 綁定事件監聽
-    // ----- 
-
     // 監聽搜尋框輸入
-    searchInput?.addEventListener('input', filterArticles);
-
-    // 監聽分類按鈕點擊
-    categoryButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        // 移除所有按鈕的 active 狀態
-        categoryButtons.forEach(btn => {
-          btn.classList.remove('active', 'text-white', 'bg-[var(--accent-color)]');
-          btn.classList.add('text-[var(--text-secondary)]', 'bg-gray-100');
-        });
-        
-        // 為被點擊的按鈕添加 active 狀態
-        button.classList.add('active', 'text-white', 'bg-[var(--accent-color)]');
-        button.classList.remove('text-[var(--text-secondary)]', 'bg-gray-100');
-        
-        // 執行篩選
-        filterArticles();
-      });
+    searchInput.addEventListener('input', (e) => {
+      currentSearch = (e.target as HTMLInputElement).value.toLowerCase().trim();
+      runSearchFilter();
     });
 
-    // 頁面載入時，根據已選中的分類先跑一次篩選
-    filterArticles();
+    // 頁面載入時，立即執行一次篩選 (處理 URL 帶來的關鍵字)
+    runSearchFilter();
   });
 </script>
 </BaseLayout>
