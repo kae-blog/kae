@@ -1,5 +1,6 @@
 ---
-// src/components/PostCardHorizontal.astro (這是您的備份)
+// src/components/PostCardHorizontal.astro
+// 這是首頁「最新文章」專用的橫式卡片
 import type { CollectionEntry } from 'astro:content';
 
 interface Props {
@@ -14,12 +15,23 @@ const formatDate = (date: Date) => {
 };
 ---
 
-<article class="bg-[var(--bg-card)] rounded-xl shadow-md flex items-center p-4 hover:shadow-lg transition-all duration-300">
+<article class="bg-[var(--bg-card)] rounded-xl shadow-md flex items-center p-4 hover:shadow-lg transition-all duration-300 group">
+  
+  <!-- 1. 左側圖片 (固定大小) -->
   <div class="w-24 h-24 flex-shrink-0 overflow-hidden border border-[var(--border-color)] mr-4 rounded-lg">
-    <img src={post.data.previewImage} alt={post.data.title} class="w-full h-full object-cover" />
+    <a href={`/blog/${post.slug}`} class="block w-full h-full">
+      <img 
+        src={post.data.previewImage} 
+        alt={post.data.title} 
+        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+      />
+    </a>
   </div>
   
-  <div class="flex-1 flex flex-col">
+  <!-- 2. 右側內容 -->
+  <div class="flex-1 flex flex-col min-w-0"> <!-- min-w-0 是為了讓內部的 truncate 生效 -->
+    
+    <!-- 分類 -->
     <div class="mb-2 flex flex-wrap gap-1 justify-end">
       {post.data.category.map(cat => (
         <a href={`/category/${cat}`} class="text-xs font-medium text-white bg-[var(--accent-color)] py-1 px-2 rounded-full hover:bg-[var(--accent-hover)] transition-colors">
@@ -27,24 +39,52 @@ const formatDate = (date: Date) => {
         </a>
       ))}
     </div>
+
+    <!-- 標題與摘要 -->
     <div class="flex-grow">
-      <h3 class="text-base font-bold text-[var(--text-primary)] mb-1 line-clamp-2">
+      <h3 class="text-base font-bold text-[var(--text-primary)] mb-1 line-clamp-1"> <!-- 這裡設為單行，保持橫式卡片俐落 -->
         <a href={`/blog/${post.slug}`} class="hover:text-[var(--accent-color)] transition-colors">
           {post.data.title}
         </a>
       </h3>
-      <p class="text-sm text-[var(--text-secondary)] line-clamp-2 mb-2">{post.data.description}</p>
+      <p class="text-sm text-[var(--text-secondary)] line-clamp-1 mb-2">{post.data.description}</p>
     </div>
-    <div class="flex flex-wrap items-center justify-between text-xs text-gray-500 gap-x-2 gap-y-1">
-      <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-        <span>{formatDate(post.data.publishDate)}</span>
-        {post.data.tags?.slice(0, 1).map(tag => (
-          <span class="px-2 py-0.5 rounded-md text-gray-700 text-xs" style="background-color: #e7f0e2;">
-            {tag}
-          </span>
-        ))}
+
+    <!-- 
+       ★ 底部資訊區 (日期 + Tags + 閱讀按鈕)
+       這裡使用了 Flexbox 來控制空間分配
+    -->
+    <div class="flex items-center justify-between text-xs text-gray-500 gap-3">
+      
+      <!-- 左邊群組：日期 + Tags -->
+      <div class="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
+        
+        <!-- 日期 (不准縮小) -->
+        <span class="flex-shrink-0 whitespace-nowrap">{formatDate(post.data.publishDate)}</span>
+        
+        <!-- 
+           Tags 容器 (自動截斷)
+           flex-1: 佔用剩餘空間
+           h-5: 固定高度限制為一行
+           overflow-hidden: 超出隱藏
+        -->
+        <div class="flex gap-1 overflow-hidden h-5 items-center">
+          {post.data.tags?.map(tag => (
+            <a 
+              href={`/archive?q=${encodeURIComponent(tag)}`}
+              class="px-2 py-0.5 rounded-md text-gray-700 bg-[#e7f0e2] hover:bg-[var(--accent-color)] hover:text-white transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
+            >
+              {tag}
+            </a>
+          ))}
+        </div>
       </div>
-      <a href={`/blog/${post.slug}`} class="text-[var(--accent-color)] hover:underline ml-auto">閱讀 &rarr;</a>
+
+      <!-- 右邊按鈕：閱讀更多 (靠右) -->
+      <a href={`/blog/${post.slug}`} class="text-[var(--accent-color)] hover:underline ml-auto flex-shrink-0">
+        閱讀 &rarr;
+      </a>
+
     </div>
   </div>
 </article>
