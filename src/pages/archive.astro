@@ -59,7 +59,7 @@ const allCategories = [...new Set(allPosts.flatMap(post => post.data.category))]
            1. 加入 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 (響應式網格)
            2. 使用 <PostCard /> 取代原本的一大串 HTML
         -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="article-list-container">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="article-list-container">
           {allPosts.map(post => (
             // 注意：我們需要在外層 div 加上 data 屬性供搜尋 JS 使用，
             // 但因為 PostCard 是元件，我們最好在外面包一層 div 來做搜尋隱藏控制
