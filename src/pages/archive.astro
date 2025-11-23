@@ -1,8 +1,7 @@
 ---
-// 檔案路徑: src/pages/archive.astro
+// 檔案路徑: src/pages/archive.astro (已修正：分類標籤獨立並連結到分類頁)
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Sidebar from '../components/Sidebar.astro';
-// 👇 1. 引入我們剛做好的方形卡片元件
 import PostCard from '../components/PostCard.astro'; 
 import { getCollection } from 'astro:content';
 
@@ -22,9 +21,36 @@ const allCategories = [...new Set(allPosts.flatMap(post => post.data.category))]
           所有文章 ({allPosts.length})
         </h2>
 
-        <!-- 搜尋/篩選器區塊 (保持不變) -->
+        <!-- 
+           👇 修改重點 A：分類標籤區塊 (新增)
+           這是一個獨立的導覽區塊，點擊後會跳轉到分類頁
+        -->
         <div class="mb-8 p-4 bg-[var(--bg-card)] rounded-lg shadow-md">
-          <div class="mb-4">
+          <h3 class="text-lg font-bold text-[var(--text-primary)] mb-3">瀏覽所有分類</h3>
+          <div class="flex flex-wrap gap-2">
+            
+            <!-- 連結到 /archive (所有文章) -->
+            <a href="/archive" class="text-xs font-medium text-white bg-[var(--accent-color)] py-1 px-3 rounded-full hover:bg-[var(--accent-hover)] transition-colors flex-shrink-0">
+              所有文章
+            </a>
+            
+            <!-- 連結到各個分類頁面 -->
+            {allCategories.map(cat => (
+              <a 
+                href={`/category/${cat}`} 
+                class="text-xs font-medium text-[var(--text-secondary)] bg-gray-100 py-1 px-3 rounded-full hover:bg-gray-200 transition-colors flex-shrink-0"
+              >
+                {cat}
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <!-- 
+           👇 修改重點 B：搜尋器區塊 (原本的篩選器，現在只剩下搜尋)
+        -->
+        <div class="mb-8 p-4 bg-[var(--bg-card)] rounded-lg shadow-md">
+          <div class="mb-2">
             <input 
               type="search" 
               id="search-input" 
@@ -32,37 +58,15 @@ const allCategories = [...new Set(allPosts.flatMap(post => post.data.category))]
               class="w-full px-3 py-2 rounded-md border border-[var(--border-color)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
             >
           </div>
-          <div class="flex flex-wrap gap-2">
-            <button 
-              data-category-filter="all" 
-              class="category-filter-btn active text-xs font-medium text-white bg-[var(--accent-color)] py-1 px-3 rounded-full hover:bg-[var(--accent-hover)] transition-colors"
-            >
-              全部
-            </button>
-            {allCategories.map(cat => (
-              <button 
-                data-category-filter={cat}
-                class="category-filter-btn text-xs font-medium text-[var(--text-secondary)] bg-gray-100 py-1 px-3 rounded-full hover:bg-gray-200 transition-colors"
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
+          <div class="text-xs text-[var(--text-secondary)]">請在上方搜尋框輸入關鍵字進行站內搜尋。</div>
         </div>
         
         <div id="no-results-message" class="hidden text-center text-gray-500 py-10">
           <p>找不到符合條件的文章 😅</p>
         </div>
 
-        <!-- 
-           👇 修改重點：文章列表容器
-           1. 加入 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 (響應式網格)
-           2. 使用 <PostCard /> 取代原本的一大串 HTML
-        -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="article-list-container">
           {allPosts.map(post => (
-            // 注意：我們需要在外層 div 加上 data 屬性供搜尋 JS 使用，
-            // 但因為 PostCard 是元件，我們最好在外面包一層 div 來做搜尋隱藏控制
             <div 
               class="article-card-wrapper"
               data-search-text={[
@@ -84,21 +88,19 @@ const allCategories = [...new Set(allPosts.flatMap(post => post.data.category))]
   </div>
 
   <script>
-    // 確保在 Astro 頁面轉場時也能正確執行
+    // 讓 <head> 中的 ViewTransitions API 知道這個頁面有動態內容
     document.addEventListener('astro:page-load', () => {
       
       const searchInput = document.getElementById('search-input');
-      const filterButtons = document.querySelectorAll('.category-filter-btn');
-      // 👇 修改：選擇器改抓 .article-card-wrapper
       const articleWrappers = document.querySelectorAll('.article-card-wrapper');
       const noResultsMessage = document.getElementById('no-results-message');
 
       if (!searchInput) return;
 
+      // 由於分類按鈕現在是跳轉頁面，我們只需要專注於搜尋功能
       let currentSearch = '';
-      let currentCategory = 'all';
-
-      // 讀取 URL 參數
+      
+      // 讀取 URL 參數 (來自頁首的搜尋)
       const urlParams = new URLSearchParams(window.location.search);
       const queryFromUrl = urlParams.get('q');
 
@@ -109,18 +111,17 @@ const allCategories = [...new Set(allPosts.flatMap(post => post.data.category))]
 
       function runFilter() {
         let visibleCount = 0;
-        
+        const searchTerm = currentSearch; // 使用 currentSearch 變數
+
         articleWrappers.forEach(wrapper => {
           const el = wrapper as HTMLElement;
           const searchText = el.dataset.searchText || '';
-          const categories = el.dataset.category || '';
 
-          const matchesSearch = searchText.includes(currentSearch);
-          const matchesCategory = currentCategory === 'all' || categories.includes(currentCategory);
+          // 條件: 搜尋文字
+          const matchesSearch = searchTerm === '' || searchText.includes(searchTerm);
 
-          if (matchesSearch && matchesCategory) {
-            // 如果符合，顯示 (block 或 grid 內的預設)
-            el.style.display = 'block';
+          if (matchesSearch) {
+            el.style.display = 'block'; 
             visibleCount++;
           } else {
             el.style.display = 'none';
@@ -132,26 +133,13 @@ const allCategories = [...new Set(allPosts.flatMap(post => post.data.category))]
         }
       }
 
+      // 監聽搜尋框輸入
       searchInput.addEventListener('input', (e) => {
         currentSearch = (e.target as HTMLInputElement).value.toLowerCase().trim();
         runFilter();
       });
 
-      filterButtons.forEach(button => {
-        button.addEventListener('click', () => {
-          filterButtons.forEach(btn => {
-            btn.classList.remove('active', 'text-white', 'bg-[var(--accent-color)]');
-            btn.classList.add('text-[var(--text-secondary)]', 'bg-gray-100'); 
-          });
-          
-          button.classList.add('active', 'text-white', 'bg-[var(--accent-color)]');
-          button.classList.remove('text-[var(--text-secondary)]', 'bg-gray-100'); 
-          
-          currentCategory = button.getAttribute('data-category-filter') || 'all';
-          runFilter();
-        });
-      });
-
+      // 頁面載入時，立即執行一次篩選 (處理 URL 帶來的關鍵字)
       runFilter();
     });
   </script>
