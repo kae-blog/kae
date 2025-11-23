@@ -55,19 +55,20 @@ const formatDate = (date: Date) => {
     -->
     <div class="flex items-center justify-between text-xs text-gray-500 gap-3 h-6 overflow-hidden">
       
-      <!-- 左邊群組：日期 + Tags -->
-      <div class="flex items-center gap-2 flex-1 min-w-0">
+<!-- 左邊群組：日期 + Tags (強制單行截斷) -->
+      <!-- 整個容器設為 flex-1 和 overflow-hidden，確保它不會佔用「閱讀更多」的空間 -->
+      <div class="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
         
         <!-- 日期 (不准縮小) -->
         <span class="flex-shrink-0 whitespace-nowrap">{formatDate(post.data.publishDate)}</span>
         
         <!-- 
-           ★ Tags 容器 (已修正為純文字，自動換行並隱藏第二行)
+           ★ 關鍵修改：
+           使用 flex-nowrap 確保 Tag 不會換行。
+           使用 truncate class，讓 Tag 區域整體超出時，從右邊切掉。
         -->
-        <div class="flex flex-wrap gap-x-2 overflow-hidden h-6 items-center">
+        <div class="flex flex-nowrap gap-x-2 overflow-hidden items-center truncate">
           {post.data.tags?.map(tag => (
-            <!-- 修正點 1: 移除背景和 Padding -->
-            <!-- 修正點 2: 使用 text-gray-500 (灰色) 且前面加上 # 號 -->
             <a 
               href={`/archive?q=${encodeURIComponent(tag)}`}
               class="text-xs text-gray-500 hover:text-[var(--accent-color)] hover:underline transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
