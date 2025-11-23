@@ -1,5 +1,5 @@
 ---
-// 檔案路徑: src/components/Sidebar.astro (已將標題改為連結)
+// 檔案路徑: src/components/Sidebar.astro (已修正：將所有文章連結提升為主要標題)
 import { getCollection } from 'astro:content';
 import author from '../data/author.json';
 const allPosts = (await getCollection('blog')).filter(post => !post.data.draft);
@@ -17,21 +17,19 @@ allPosts.flatMap(post => post.data.category).forEach(cat => {
     <div class="bg-[var(--bg-card)] p-6 rounded-xl shadow-lg">
         
         <!-- 
-           👇 修正：將 H3 標籤替換成連結，並加上樣式
-           點擊後會連結到 /archive (所有文章)
+           👇 修正 1：將「所有文章」連結提升為主要標題
+           它使用了 H3 的字體大小和粗體，讓它看起來是入口，同時具備連結功能。
         -->
         <a href="/archive" class="text-xl font-bold text-[var(--text-primary)] mb-4 hover:text-[var(--accent-color)] transition-colors flex items-center justify-between">
-            文章分類 
+            所有文章 ({totalCount}) 
             <span class="text-sm text-[var(--text-secondary)] hover:text-[var(--accent-color)]">&rarr;</span>
         </a>
         
-        <ul class="space-y-2 mt-4"> <!-- 加上 mt-4 讓列表與標題有足夠間距 -->
-            <li>
-                <!-- 保持所有文章連結 (現在是次級連結) -->
-                <a href="/archive" class="block text-[var(--text-secondary)] hover:text-[var(--accent-color)] transition-colors">
-                    所有文章 ({totalCount})
-                </a>
-            </li>
+        <!-- 
+           👇 修正 2：分類列表 (次級連結)
+           這裡只保留個別的分類項目，不再重複顯示「所有文章」連結。
+        -->
+        <ul class="space-y-2 mt-4 border-t border-[var(--border-color)] pt-4"> 
             {Array.from(categoryCounts.entries()).map(([category, count]) => (
                 <li>
                     <a href={`/category/${category}`} class="block text-[var(--text-secondary)] hover:text-[var(--accent-color)] transition-colors">
@@ -40,6 +38,7 @@ allPosts.flatMap(post => post.data.category).forEach(cat => {
                 </li>
             ))}
         </ul>
+        
     </div>
 
 </aside>
